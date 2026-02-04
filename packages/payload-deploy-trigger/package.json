@@ -1,6 +1,6 @@
 {
   "name": "@kurto/payload-deploy-trigger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Payload CMS plugin for triggering deployments",
   "license": "MIT",
   "type": "module",
@@ -30,18 +30,18 @@
     "prepublishOnly": "pnpm clean && pnpm build"
   },
   "peerDependencies": {
-    "@payloadcms/ui": "^3.37.0",
-    "payload": "^3.37.0",
+    "@payloadcms/ui": "^3.74.0",
+    "payload": "^3.74.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@payloadcms/ui": "3.37.0",
+    "@payloadcms/ui": "3.74.0",
     "@swc/cli": "0.6.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "copyfiles": "2.4.1",
-    "payload": "3.37.0",
+    "payload": "3.74.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rimraf": "3.0.2",
