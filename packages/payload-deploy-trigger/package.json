@@ -1,31 +1,33 @@
 {
   "name": "@kurto/payload-deploy-trigger",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A Payload CMS plugin for triggering deployments",
   "license": "MIT",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./src/index.ts",
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
-    },
-    "./components/*": {
-      "import": "./src/components/*.tsx",
-      "types": "./src/components/*.tsx",
-      "default": "./src/components/*.tsx"
-    }
-  },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./components/*": {
+      "import": "./dist/components/*.js",
+      "require": "./dist/components/*.js"
+    }
+  },
   "scripts": {
-    "build": "pnpm copyfiles && pnpm build:tsc",
-    "build:tsc": "tsc --outDir dist --rootDir ./src --declaration",
-    "clean": "rimraf {dist,*.tsbuildinfo}",
-    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/"
+    "build": "pnpm clean && pnpm copyfiles && pnpm build:swc && pnpm build:types",
+    "build:swc": "swc ./src -d ./dist --strip-leading-paths --config-file .swcrc",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist --rootDir src",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix --ext .ts,.tsx src",
+    "prepublishOnly": "pnpm clean && pnpm build"
   },
   "peerDependencies": {
     "@payloadcms/ui": "^3.37.0",
@@ -46,19 +48,6 @@
     "typescript": "5.7.3"
   },
   "publishConfig": {
-    "exports": {
-      ".": {
-        "import": "./dist/index.js",
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "./components/*": {
-        "import": "./dist/components/*.js",
-        "types": "./dist/components/*.d.ts",
-        "default": "./dist/components/*.js"
-      }
-    },
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    "access": "public"
   }
 }
