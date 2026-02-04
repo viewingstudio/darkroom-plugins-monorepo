@@ -192,8 +192,9 @@ The plugin exports TypeScript types:
 import type { PayloadDeployTriggerConfig, DeploymentStatus } from "payload-deploy-trigger";
 ```
 
-## Roadmap (Future Versions)
+## Roadmap (Potential Future Enhancements)
 
+- Scheduled deployments (cron-like scheduling)
 - UI-based webhook configuration
 - Multiple webhook support (deploy to multiple environments)
 - Automatic retry logic

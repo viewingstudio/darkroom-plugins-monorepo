@@ -101,7 +101,8 @@ export const createDeployHandler = (deployHookUrl?: string, timeoutMs = 10000): 
       return Response.json({
         success: true,
         timestamp: now.toISOString(),
-        message: "Published! Please wait a few moments for the changes to appear on the website.",
+        message:
+          "Published! All changes have been triggered for deployment. Please allow 2-5 minutes for the build process to complete and changes to appear publicly.",
       });
     } catch (error) {
       console.error("Deployment error:", error);

@@ -68,13 +68,13 @@ export const payloadDeployTrigger =
 
     if (showDashboardWidget) {
       const beforeDashboard = adminComponents.beforeDashboard || [];
-      beforeDashboard.push("payload-deploy-trigger/components/DeployWidget#DeployWidget");
+      beforeDashboard.push("@kurto/payload-deploy-trigger/components/DeployWidget#DeployWidget");
       adminComponents.beforeDashboard = beforeDashboard;
     }
 
     if (showActionButton) {
       const actions = adminComponents.actions || [];
-      actions.push("payload-deploy-trigger/components/DeployButton#DeployButton");
+      actions.push("@kurto/payload-deploy-trigger/components/DeployButton#DeployButton");
       adminComponents.actions = actions;
     }
 

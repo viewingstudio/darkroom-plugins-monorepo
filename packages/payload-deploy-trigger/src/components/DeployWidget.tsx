@@ -68,8 +68,8 @@ export function DeployWidget() {
       if (data.success) {
         setLastDeployed(data.timestamp || null);
         toast.success(
-          "Published! Please wait a few moments for the changes to appear on the website.",
-          { id: toastId },
+          "Published! All changes have been triggered for deployment. Please allow 2-5 minutes for the build process to complete and changes to appear publicly.",
+          { id: toastId, duration: 8000 },
         );
 
         // Refresh deployment history
@@ -157,25 +157,36 @@ export function DeployWidget() {
         marginBottom: "var(--base)",
       }}
     >
-      <h3
+      <header
         style={{
-          margin: "0 0 var(--base) 0",
-          fontSize: "1.125rem",
-          fontWeight: 600,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "var(--base)",
         }}
       >
-        Frontend Deployment
-      </h3>
+        <h3
+          style={{
+            margin: "0",
+            fontSize: "1.125rem",
+            fontWeight: 600,
+          }}
+        >
+          Frontend Deployment
+        </h3>
 
-      <p
-        style={{
-          margin: "0 0 var(--base) 0",
-          fontSize: "0.875rem",
-          color: "var(--theme-elevation-700)",
-        }}
-      >
-        Last deployed: <strong>{formatTimestamp(lastDeployed)}</strong>
-      </p>
+        <p
+          style={{
+            margin: "0 0 var(--base) 0",
+            fontSize: "0.875rem",
+            color: "var(--theme-elevation-700)",
+          }}
+        >
+          Last deployed: <strong>{formatTimestamp(lastDeployed)}</strong>
+        </p>
+      </header>
+
+      <p>All changes need to be published to make them live on the website.</p>
 
       <Button
         onClick={handleDeploy}

@@ -1,11 +1,12 @@
 {
-  "$schema": "https://json.schemastore.org/swcrc",
+  "sourceMaps": true,
   "jsc": {
     "parser": {
       "syntax": "typescript",
       "tsx": true,
       "decorators": true,
-      "dynamicImport": true
+      "dynamicImport": true,
+      "dts": true
     },
     "target": "es2022",
     "loose": false,
@@ -13,6 +14,15 @@
     "keepClassNames": true,
     "experimental": {
       "keepImportAttributes": true
+    },
+    "transform": {
+      "react": {
+        "runtime": "automatic",
+        "pragmaFrag": "React.Fragment",
+        "throwIfNamespace": true,
+        "development": false,
+        "useBuiltins": true
+      }
     }
   },
   "module": {
@@ -23,6 +33,5 @@
     "noInterop": false,
     "importInterop": "swc"
   },
-  "sourceMaps": true,
   "inlineSourcesContent": true
 }

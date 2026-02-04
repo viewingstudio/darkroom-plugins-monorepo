@@ -24,8 +24,8 @@ export const DeployButton: React.FC = () => {
 
       if (data.success) {
         toast.success(
-          "Published! Please wait a few moments for the changes to appear on the website.",
-          { id: toastId },
+          "Published! All changes have been triggered for deployment. Please allow 2-5 minutes for the build process to complete and changes to appear publicly.",
+          { id: toastId, duration: 8000 },
         );
       } else {
         // Handle specific error cases
