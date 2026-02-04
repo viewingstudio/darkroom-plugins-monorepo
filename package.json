@@ -1,14 +1,17 @@
 {
   "name": "darkroom-plugins-monorepo",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter dev dev",
     "build": "pnpm -r --filter './packages/*' build",
     "clean": "pnpm -r clean",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "prepare": "pnpm build",
+    "publish": "pnpm publish:payload-access && pnpm publish:payload-deploy-trigger",
+    "publish:payload-access": "prepare && cd packages/payload-access && npm publish",
+    "publish:payload-deploy-trigger": "prepare && cd packages/payload-deploy-trigger && npm publish"
   },
   "devDependencies": {
     "@payloadcms/eslint-config": "3.9.0",
