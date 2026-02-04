@@ -1,5 +1,5 @@
 {
-  "name": "@kurto/payload-deploy-trigger",
+  "name": "@viewingstudio/payload-deploy-trigger",
   "version": "0.0.1",
   "description": "A Payload CMS plugin for triggering deployments",
   "license": "MIT",
