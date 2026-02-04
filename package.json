@@ -1,6 +1,5 @@
 {
   "name": "darkroom-plugins-monorepo",
-  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter dev dev",

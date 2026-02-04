@@ -22,10 +22,10 @@ importers:
 
   dev:
     dependencies:
-      '@viewingstudio/payload-access':
+      '@kurto/payload-access':
         specifier: workspace:*
         version: link:../packages/payload-access
-      '@viewingstudio/payload-deploy-trigger':
+      '@kurto/payload-deploy-trigger':
         specifier: workspace:*
         version: link:../packages/payload-deploy-trigger
       '@opennextjs/cloudflare':
