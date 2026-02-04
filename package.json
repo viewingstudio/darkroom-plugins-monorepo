@@ -8,8 +8,7 @@
     "clean": "pnpm -r clean",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "prepare": "pnpm build",
-    "publish": "pnpm publish:payload-access && pnpm publish:payload-deploy-trigger",
+    "publish": "pnpm -r --filter './packages/*' build && pnpm publish:payload-access && pnpm publish:payload-deploy-trigger",
     "publish:payload-access": "cd packages/payload-access && npm publish",
     "publish:payload-deploy-trigger": "cd packages/payload-deploy-trigger && npm publish"
   },
