@@ -1,0 +1,122 @@
+{
+  "name": "@kurto/payload-seo-advanced",
+  "version": "0.1.0",
+  "description": "Advanced SEO plugin for Payload CMS",
+  "keywords": [
+    "payload",
+    "cms",
+    "plugin",
+    "typescript",
+    "react",
+    "seo",
+    "schema.org",
+    "structured-data"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kurto/viewingstudio-darkroom-plugins.git",
+    "directory": "packages/payload-seo-advanced"
+  },
+  "license": "MIT",
+  "author": "Kurt Overton",
+  "sideEffects": [
+    "*.scss",
+    "*.css"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.tsx",
+      "types": "./src/index.tsx",
+      "default": "./src/index.tsx"
+    },
+    "./types": {
+      "import": "./src/exports/types.ts",
+      "types": "./src/exports/types.ts",
+      "default": "./src/exports/types.ts"
+    },
+    "./fields": {
+      "import": "./src/exports/fields.ts",
+      "types": "./src/exports/fields.ts",
+      "default": "./src/exports/fields.ts"
+    },
+    "./client": {
+      "import": "./src/exports/client.ts",
+      "types": "./src/exports/client.ts",
+      "default": "./src/exports/client.ts"
+    },
+    "./utilities": {
+      "import": "./src/utilities/generateSchema.ts",
+      "types": "./src/utilities/generateSchema.ts",
+      "default": "./src/utilities/generateSchema.ts"
+    }
+  },
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm clean && pnpm copyfiles && pnpm build:swc && pnpm build:types",
+    "build:swc": "swc ./src -d ./dist --strip-leading-paths --config-file .swcrc",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist --rootDir src",
+    "clean": "rimraf dist && rimraf tsconfig.tsbuildinfo",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix --ext .ts,.tsx src",
+    "prepublishOnly": "pnpm clean && pnpm build"
+  },
+  "peerDependencies": {
+    "@payloadcms/translations": "^3.74.0",
+    "@payloadcms/ui": "^3.74.0",
+    "payload": "^3.74.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@payloadcms/translations": "3.74.0",
+    "@payloadcms/ui": "3.74.0",
+    "@swc/cli": "0.6.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "copyfiles": "2.4.1",
+    "payload": "3.74.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "rimraf": "3.0.2",
+    "typescript": "5.7.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./types": {
+        "import": "./dist/exports/types.js",
+        "types": "./dist/exports/types.d.ts",
+        "default": "./dist/exports/types.js"
+      },
+      "./fields": {
+        "import": "./dist/exports/fields.js",
+        "types": "./dist/exports/fields.d.ts",
+        "default": "./dist/exports/fields.js"
+      },
+      "./client": {
+        "import": "./dist/exports/client.js",
+        "types": "./dist/exports/client.d.ts",
+        "default": "./dist/exports/client.js"
+      },
+      "./utilities": {
+        "import": "./dist/utilities/generateSchema.js",
+        "types": "./dist/utilities/generateSchema.d.ts",
+        "default": "./dist/utilities/generateSchema.js"
+      }
+    },
+    "main": "./dist/index.js",
+    "registry": "https://registry.npmjs.org/",
+    "types": "./dist/index.d.ts"
+  }
+}

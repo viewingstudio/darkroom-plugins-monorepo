@@ -29,6 +29,9 @@ importers:
       '@kurto/payload-deploy-trigger':
         specifier: workspace:*
         version: link:../packages/payload-deploy-trigger
+      '@kurto/payload-seo-advanced':
+        specifier: workspace:*
+        version: link:../packages/payload-seo-advanced
       '@opennextjs/cloudflare':
         specifier: ^1.11.0
         version: 1.16.2(next@15.4.11(@babel/core@7.29.0)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(wrangler@4.61.1)
@@ -157,6 +160,42 @@ importers:
 
   packages/payload-deploy-trigger:
     devDependencies:
+      '@payloadcms/ui':
+        specifier: 3.74.0
+        version: 3.74.0(@types/react@19.2.9)(monaco-editor@0.55.1)(next@15.4.11(@babel/core@7.29.0)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.74.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.7.3)
+      '@swc/cli':
+        specifier: 0.6.0
+        version: 0.6.0(@swc/core@1.15.11)
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.9
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.9)
+      copyfiles:
+        specifier: 2.4.1
+        version: 2.4.1
+      payload:
+        specifier: 3.74.0
+        version: 3.74.0(graphql@16.12.0)(typescript@5.7.3)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.1(react@19.2.1)
+      rimraf:
+        specifier: 3.0.2
+        version: 3.0.2
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+
+  packages/payload-seo-advanced:
+    devDependencies:
+      '@payloadcms/translations':
+        specifier: 3.74.0
+        version: 3.74.0
       '@payloadcms/ui':
         specifier: 3.74.0
         version: 3.74.0(@types/react@19.2.9)(monaco-editor@0.55.1)(next@15.4.11(@babel/core@7.29.0)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.74.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.7.3)
