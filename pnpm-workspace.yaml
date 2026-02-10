@@ -1,3 +1,4 @@
 packages:
-  - "packages/*"
-  - "dev"
+  - 'packages/*'
+  - 'packages/astro-seo-advanced/tests/fixtures'
+  - 'dev'

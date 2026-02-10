@@ -1,0 +1,57 @@
+{
+  "name": "@kurto/astro-seo-advanced",
+  "version": "1.0.0",
+  "description": "Astro components for rendering SEO head markup from @kurto/payload-seo-advanced data",
+  "keywords": [
+    "astro",
+    "seo",
+    "payload",
+    "open-graph",
+    "twitter-card",
+    "json-ld",
+    "schema.org",
+    "meta-tags"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kurto/viewingstudio-darkroom-plugins.git",
+    "directory": "packages/astro-seo-advanced"
+  },
+  "license": "MIT",
+  "author": "Kurt Overton",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "astro": ">=5.17.0"
+  },
+  "dependencies": {
+    "@kurto/payload-seo-advanced": "workspace:*"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "prepublishOnly": "pnpm test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "astro": "^5.17.0",
+    "typescript": "5.7.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "sideEffects": false
+}

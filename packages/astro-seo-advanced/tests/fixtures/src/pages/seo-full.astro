@@ -1,0 +1,54 @@
+---
+import { SEO } from '@kurto/astro-seo-advanced'
+
+const meta = {
+  title: 'Full SEO Page',
+  description: 'A fully configured SEO page',
+  keywords: 'full, seo, test',
+  image: {
+    url: 'https://example.com/og.jpg',
+    width: 1200,
+    height: 630,
+    alt: 'OG image',
+    mimeType: 'image/jpeg',
+  },
+  robotsMeta: 'noindex',
+  canonicalUrl: '/custom-canonical',
+}
+
+const globalSettings = {
+  siteName: 'Test Site',
+  titleSeparator: '|',
+  defaults: {
+    fallbackDescription: 'Fallback description',
+    ogImage: { url: 'https://example.com/fallback.jpg' },
+  },
+  indexing: {
+    noindex: false,
+  },
+}
+---
+
+<html>
+  <head>
+    <SEO
+      meta={meta}
+      globalSettings={globalSettings}
+      siteUrl="https://example.com"
+      currentPath="/test-page"
+      locale="en_US"
+      twitterSite="@testsite"
+      twitterCreator="@testcreator"
+      languageAlternates={[
+        { href: 'https://example.com/de/test-page', hrefLang: 'de' },
+      ]}
+      extend={{
+        meta: [{ name: 'author', content: 'Test Author' }],
+        link: [{ rel: 'icon', href: '/favicon.ico' }],
+      }}
+    />
+  </head>
+  <body>
+    <p>Full SEO test page</p>
+  </body>
+</html>

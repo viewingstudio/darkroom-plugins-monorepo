@@ -1,0 +1,9 @@
+---
+import type { CanonicalUrlProps } from './types.js'
+
+interface Props extends CanonicalUrlProps {}
+
+const { url } = Astro.props
+---
+
+{url && <link rel="canonical" href={url} />}

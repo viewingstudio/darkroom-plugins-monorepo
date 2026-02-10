@@ -1,0 +1,108 @@
+---
+import type { SEOProps } from './types.js'
+import { buildTitle, resolveImage, absoluteUrl } from './utils.js'
+import MetaTags from './MetaTags.astro'
+import OpenGraph from './OpenGraph.astro'
+import TwitterCard from './TwitterCard.astro'
+import Robots from './Robots.astro'
+import CanonicalUrl from './CanonicalUrl.astro'
+import LanguageAlternates from './LanguageAlternates.astro'
+import JsonLd from './JsonLd.astro'
+
+interface Props extends SEOProps {}
+
+const {
+  meta,
+  globalSettings,
+  siteUrl,
+  currentPath,
+  doc,
+  titleTemplate,
+  titleDefault,
+  ogType = 'website',
+  locale,
+  localeAlternates,
+  languageAlternates,
+  twitterCard,
+  twitterSite,
+  twitterCreator,
+  robotsExtras,
+  extend,
+} = Astro.props
+
+const title = buildTitle({
+  metaTitle: meta.title,
+  titleTemplate,
+  titleDefault,
+  siteName: globalSettings?.siteName,
+  separator: globalSettings?.titleSeparator,
+  disableSiteName: meta.disableSiteName,
+})
+
+const description = meta.description || globalSettings?.defaults?.fallbackDescription || undefined
+
+const image = resolveImage(meta.image, globalSettings?.defaults?.ogImage)
+
+const canonicalUrl = meta.canonicalUrl
+  ? absoluteUrl(siteUrl, meta.canonicalUrl)
+  : absoluteUrl(siteUrl, currentPath)
+
+const pageUrl = absoluteUrl(siteUrl, currentPath)
+
+const isArticle = meta.structuredData?.schemaType === 'article'
+const resolvedOgType = isArticle ? 'article' : ogType
+
+const articlePublishedTime = isArticle
+  ? meta.structuredData?.articleFields?.publishDate
+  : undefined
+
+const articleAuthor = isArticle
+  ? meta.structuredData?.articleFields?.author
+  : undefined
+
+const jsonLdDoc = doc || { meta, title: meta.title }
+---
+
+<MetaTags
+  title={title}
+  description={description}
+  keywords={meta.keywords}
+/>
+<OpenGraph
+  title={meta.title || titleDefault || ''}
+  description={description}
+  url={pageUrl}
+  ogType={resolvedOgType}
+  siteName={globalSettings?.siteName}
+  locale={locale}
+  localeAlternates={localeAlternates}
+  image={image}
+  articlePublishedTime={articlePublishedTime}
+  articleAuthor={articleAuthor}
+/>
+<TwitterCard
+  title={meta.title || titleDefault || ''}
+  description={description}
+  image={image}
+  card={twitterCard}
+  site={twitterSite}
+  creator={twitterCreator}
+/>
+<Robots
+  robotsMeta={meta.robotsMeta}
+  globalNoindex={globalSettings?.indexing?.noindex}
+  extras={robotsExtras}
+/>
+<CanonicalUrl url={canonicalUrl} />
+{languageAlternates && languageAlternates.length > 0 && (
+  <LanguageAlternates alternates={languageAlternates} />
+)}
+{jsonLdDoc && (
+  <JsonLd doc={jsonLdDoc} globalSettings={globalSettings} />
+)}
+{extend?.meta?.map((attrs) => (
+  <meta {...attrs} />
+))}
+{extend?.link?.map((attrs) => (
+  <link {...attrs} />
+))}

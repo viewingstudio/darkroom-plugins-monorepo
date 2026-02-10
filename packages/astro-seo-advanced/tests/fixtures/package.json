@@ -1,0 +1,10 @@
+{
+  "name": "astro-seo-advanced-test-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "astro": "^5.17.0",
+    "@kurto/astro-seo-advanced": "workspace:*",
+    "@kurto/payload-seo-advanced": "workspace:*"
+  }
+}

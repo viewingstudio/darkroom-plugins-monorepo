@@ -1,0 +1,11 @@
+---
+import type { LanguageAlternatesProps } from './types.js'
+
+interface Props extends LanguageAlternatesProps {}
+
+const { alternates } = Astro.props
+---
+
+{alternates?.map(({ href, hrefLang }) => (
+  <link rel="alternate" hreflang={hrefLang} href={href} />
+))}

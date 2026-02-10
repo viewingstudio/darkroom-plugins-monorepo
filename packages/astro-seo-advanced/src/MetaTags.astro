@@ -1,0 +1,11 @@
+---
+import type { MetaTagsProps } from './types.js'
+
+interface Props extends MetaTagsProps {}
+
+const { title, description, keywords } = Astro.props
+---
+
+{title && <title>{title}</title>}
+{description && <meta name="description" content={description} />}
+{keywords && <meta name="keywords" content={keywords} />}

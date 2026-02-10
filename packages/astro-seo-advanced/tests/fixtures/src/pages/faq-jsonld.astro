@@ -1,0 +1,17 @@
+---
+import { FaqJsonLd } from '@kurto/astro-seo-advanced'
+
+const faqs = [
+  { question: 'What is Astro?', answer: 'Astro is a web framework for building content-driven websites.' },
+  { question: 'What is Payload CMS?', answer: 'Payload is a headless CMS built with TypeScript.' },
+  { question: 'Can I use both together?', answer: 'Yes, they work great together.' },
+]
+---
+
+<html>
+  <head><title>FAQ Test</title></head>
+  <body>
+    <h1>FAQ</h1>
+    <FaqJsonLd items={faqs} />
+  </body>
+</html>

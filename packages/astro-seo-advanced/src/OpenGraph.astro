@@ -1,0 +1,42 @@
+---
+import type { OpenGraphProps } from './types.js'
+import { resolveImage } from './utils.js'
+
+interface Props extends OpenGraphProps {}
+
+const {
+  title,
+  description,
+  url,
+  ogType = 'website',
+  siteName,
+  locale,
+  localeAlternates,
+  image,
+  articlePublishedTime,
+  articleAuthor,
+} = Astro.props
+
+const resolved = resolveImage(image)
+---
+
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:url" content={url} />
+<meta property="og:type" content={ogType} />
+{siteName && <meta property="og:site_name" content={siteName} />}
+{locale && <meta property="og:locale" content={locale} />}
+{localeAlternates?.map((alt) => (
+  <meta property="og:locale:alternate" content={alt} />
+))}
+{resolved?.url && <meta property="og:image" content={resolved.url} />}
+{resolved?.width && <meta property="og:image:width" content={String(resolved.width)} />}
+{resolved?.height && <meta property="og:image:height" content={String(resolved.height)} />}
+{resolved?.alt && <meta property="og:image:alt" content={resolved.alt} />}
+{resolved?.mimeType && <meta property="og:image:type" content={resolved.mimeType} />}
+{ogType === 'article' && articlePublishedTime && (
+  <meta property="article:published_time" content={articlePublishedTime} />
+)}
+{ogType === 'article' && articleAuthor && (
+  <meta property="article:author" content={articleAuthor} />
+)}

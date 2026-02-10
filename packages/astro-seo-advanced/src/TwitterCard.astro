@@ -1,0 +1,19 @@
+---
+import type { TwitterCardProps } from './types.js'
+import { resolveImage } from './utils.js'
+
+interface Props extends TwitterCardProps {}
+
+const { title, description, image, site, creator, card } = Astro.props
+
+const resolved = resolveImage(image)
+const cardType = card || (resolved ? 'summary_large_image' : 'summary')
+---
+
+<meta name="twitter:card" content={cardType} />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+{resolved?.url && <meta name="twitter:image" content={resolved.url} />}
+{resolved?.alt && <meta name="twitter:image:alt" content={resolved.alt} />}
+{site && <meta name="twitter:site" content={site} />}
+{creator && <meta name="twitter:creator" content={creator} />}

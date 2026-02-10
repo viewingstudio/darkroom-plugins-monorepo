@@ -1,0 +1,14 @@
+---
+import type { JsonLdProps } from './types.js'
+import { generateSchema } from '@kurto/payload-seo-advanced/utilities'
+
+interface Props extends JsonLdProps {}
+
+const { doc, globalSettings } = Astro.props
+
+const jsonLd = generateSchema(doc, globalSettings)
+---
+
+{jsonLd && (
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+)}

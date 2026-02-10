@@ -1,0 +1,12 @@
+---
+import type { RobotsProps } from './types.js'
+import { buildRobots } from './utils.js'
+
+interface Props extends RobotsProps {}
+
+const { robotsMeta, globalNoindex, extras } = Astro.props
+
+const content = buildRobots({ robotsMeta, globalNoindex, extras })
+---
+
+{content && <meta name="robots" content={content} />}

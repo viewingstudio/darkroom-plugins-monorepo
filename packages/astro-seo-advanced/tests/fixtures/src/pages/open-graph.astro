@@ -1,0 +1,21 @@
+---
+import { OpenGraph } from '@kurto/astro-seo-advanced'
+---
+
+<html>
+  <head>
+    <OpenGraph
+      title="OG Test Title"
+      description="OG test description"
+      url="https://example.com/test"
+      ogType="website"
+      siteName="Test Site"
+      locale="en_US"
+      localeAlternates={['fr_FR', 'de_DE']}
+      image={{ url: 'https://example.com/image.jpg', width: 1200, height: 630, alt: 'Test image', mimeType: 'image/jpeg' }}
+    />
+  </head>
+  <body>
+    <p>OpenGraph test page</p>
+  </body>
+</html>

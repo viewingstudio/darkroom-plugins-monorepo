@@ -1,0 +1,16 @@
+---
+import { LanguageAlternates } from '@kurto/astro-seo-advanced'
+---
+
+<html>
+  <head>
+    <LanguageAlternates alternates={[
+      { href: 'https://example.com/en/page', hrefLang: 'en' },
+      { href: 'https://example.com/de/page', hrefLang: 'de' },
+      { href: 'https://example.com/fr/page', hrefLang: 'fr' },
+    ]} />
+  </head>
+  <body>
+    <p>Language alternates test page</p>
+  </body>
+</html>
