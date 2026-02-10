@@ -74,11 +74,8 @@ function buildArticle(
   })
 }
 
-function buildProduct(
-  name: string,
-  fields?: Record<string, any>,
-): Record<string, any> | null {
-  if (!fields?.price) return null
+function buildProduct(name: string, fields?: Record<string, any>): Record<string, any> | null {
+  if (fields?.price === undefined || fields?.price === null) return null
 
   return clean({
     '@context': 'https://schema.org',
@@ -88,17 +85,12 @@ function buildProduct(
       '@type': 'Offer',
       price: fields.price,
       priceCurrency: fields.currency || 'USD',
-      availability: fields.inStock
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
+      availability: fields.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     },
   })
 }
 
-function buildService(
-  name: string,
-  fields?: Record<string, any>,
-): Record<string, any> | null {
+function buildService(name: string, fields?: Record<string, any>): Record<string, any> | null {
   return clean({
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -114,10 +106,7 @@ function buildService(
   })
 }
 
-function buildEvent(
-  name: string,
-  fields?: Record<string, any>,
-): Record<string, any> | null {
+function buildEvent(name: string, fields?: Record<string, any>): Record<string, any> | null {
   if (!fields?.startDate) return null
 
   return clean({
