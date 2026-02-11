@@ -206,7 +206,7 @@ export function createSeoSettingsGlobal(
     slug: config.slug ?? 'seo-settings',
     access: config.access,
     admin: {
-      group: config.adminGroup ?? 'SEO',
+      group: config.adminGroup,
     },
     fields: finalFields,
     label: 'SEO Settings',

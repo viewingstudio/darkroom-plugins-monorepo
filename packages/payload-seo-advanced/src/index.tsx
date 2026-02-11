@@ -39,6 +39,37 @@ export const payloadSeoAdvanced =
     const seoSettingsSlug = globalSettingsConfig?.slug ?? 'seo-settings'
     const hasGlobalSettings = !!globalSettingsConfig
 
+    // Determine the best admin group for SEO settings
+    const getDefaultAdminGroup = (): string => {
+      // Check if user explicitly specified a group
+      if (globalSettingsConfig?.adminGroup) {
+        return globalSettingsConfig.adminGroup
+      }
+
+      // Check if there are existing globals using 'Settings' group
+      const existingSettingsGroups = config.globals?.filter(
+        (global) => global.admin?.group === 'Settings',
+      )
+
+      // Check if there are existing globals using 'SEO' group
+      const existingSeoGroups = config.globals?.filter((global) => global.admin?.group === 'SEO')
+
+      // If there are existing settings groups, use Settings to consolidate
+      if (existingSettingsGroups && existingSettingsGroups.length > 0) {
+        return 'Settings'
+      }
+
+      // If there are existing SEO groups, use SEO to consolidate
+      if (existingSeoGroups && existingSeoGroups.length > 0) {
+        return 'SEO'
+      }
+
+      // Default to Settings to reduce sidebar sections as requested
+      return 'Settings'
+    }
+
+    const defaultAdminGroup = getDefaultAdminGroup()
+
     const defaultFields: Field[] = [
       OverviewField({}),
       MetaTitleField({
@@ -352,10 +383,9 @@ export const payloadSeoAdvanced =
                       { status: 200 },
                     )
                   } catch {
-                    return new Response(
-                      JSON.stringify({ siteName: '', titleSeparator: '|' }),
-                      { status: 200 },
-                    )
+                    return new Response(JSON.stringify({ siteName: '', titleSeparator: '|' }), {
+                      status: 200,
+                    })
                   }
                 },
                 method: 'get' as const,
@@ -414,7 +444,10 @@ export const payloadSeoAdvanced =
         ...(globalSettingsConfig
           ? [
               createSeoSettingsGlobal(
-                globalSettingsConfig,
+                {
+                  ...globalSettingsConfig,
+                  adminGroup: globalSettingsConfig.adminGroup ?? defaultAdminGroup,
+                },
                 pluginConfig.uploadsCollection as string | undefined,
               ),
             ]
