@@ -141,7 +141,7 @@ export const payloadSeoAdvanced =
             ? pluginConfig.fieldsOverride({ defaultFields })
             : defaultFields),
         ],
-        interfaceName: pluginConfig?.interfaceName || 'SEO Metadata',
+        interfaceName: pluginConfig?.interfaceName || 'SEOMetadata',
         label: 'SEO',
       },
     ]
