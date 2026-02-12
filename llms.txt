@@ -1,0 +1,26 @@
+# Darkroom Plugins Monorepo
+
+> A collection of Payload CMS and Astro plugins for access control, SEO, and deployment automation. Published under the `@kurto/` scope on npm.
+
+- Tech stack: Payload CMS 3.x, Astro 5.x, TypeScript, React 18/19, pnpm workspaces
+- All plugins follow the Payload plugin pattern: curried functions `(options) => (config) => config`
+- Monorepo managed with pnpm workspaces
+
+## Packages
+
+- [@kurto/payload-seo-advanced](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-seo-advanced/llms.txt): Advanced SEO plugin for Payload CMS — global settings, advanced per-page fields, Schema.org structured data, SERP preview
+- [@kurto/astro-seo-advanced](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/astro-seo-advanced/llms.txt): Astro components for rendering SEO head markup from payload-seo-advanced data — meta tags, Open Graph, Twitter Cards, JSON-LD
+- [@kurto/payload-access](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-access/llms.txt): Role-Based Access Control (RBAC) plugin for Payload CMS — 3-tier system (Developer > Admin > Editor) with helper functions
+- [@kurto/payload-deploy-trigger](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-deploy-trigger/llms.txt): Deployment trigger plugin for Payload CMS — one-click deploys via webhooks with dashboard widget and audit log
+
+## Docs
+
+- [@kurto/payload-seo-advanced README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-seo-advanced/README.md): Full SEO plugin documentation
+- [@kurto/astro-seo-advanced README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/astro-seo-advanced/README.md): Full Astro SEO components documentation
+- [@kurto/payload-access README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-access/README.md): Full RBAC plugin documentation
+- [@kurto/payload-deploy-trigger README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-deploy-trigger/README.md): Full deploy trigger documentation
+
+## Optional
+
+- [Monorepo README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/README.md): Development setup and project structure
+- [Source](https://github.com/kurto/viewingstudio-darkroom-plugins): Full monorepo source code

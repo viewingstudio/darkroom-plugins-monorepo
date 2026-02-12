@@ -1,0 +1,87 @@
+# @kurto/astro-seo-advanced
+
+> Astro components for rendering SEO `<head>` markup from `@kurto/payload-seo-advanced` data. Handles meta tags, Open Graph, Twitter Cards, robots directives, canonical URLs, hreflang alternates, and JSON-LD structured data.
+
+- Peer dependency: `astro` (>=5.17)
+- Depends on: `@kurto/payload-seo-advanced` (^1.0.0)
+- Install: `pnpm add @kurto/astro-seo-advanced`
+
+## All-in-One `<SEO />` Component
+
+```astro
+---
+import { SEO } from '@kurto/astro-seo-advanced'
+const page = await getPage()
+const seoSettings = await getSeoSettings()
+---
+<head>
+  <SEO
+    meta={page.meta}
+    globalSettings={seoSettings}
+    siteUrl="https://example.com"
+    currentPath={Astro.url.pathname}
+  />
+</head>
+```
+
+### Props
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `meta` | `Meta` | Yes | The document's `meta` field from Payload |
+| `globalSettings` | `Record<string, any>` | No | SEO Settings global data |
+| `siteUrl` | `string` | Yes | Base site URL (e.g. `https://example.com`) |
+| `currentPath` | `string` | Yes | Current page path (e.g. `/about`) |
+| `doc` | `Record<string, any>` | No | Full Payload document (for JSON-LD) |
+| `titleTemplate` | `string` | No | Title format override, e.g. `"%s — My Site"` |
+| `titleDefault` | `string` | No | Fallback title when `meta.title` is empty |
+| `ogType` | `string` | No | Open Graph type (default: `'website'`) |
+| `locale` | `string` | No | `og:locale` value |
+| `localeAlternates` | `string[]` | No | `og:locale:alternate` values |
+| `languageAlternates` | `Array<{ href, hrefLang }>` | No | Hreflang alternates for i18n |
+| `twitterCard` | `'summary' \| 'summary_large_image'` | No | Twitter card type |
+| `twitterSite` | `string` | No | `@handle` for `twitter:site` |
+| `twitterCreator` | `string` | No | `@handle` for `twitter:creator` |
+| `robotsExtras` | `string` | No | Extra robots directives |
+| `extend` | `{ meta?, link? }` | No | Escape hatch for arbitrary `<meta>` and `<link>` tags |
+
+## Composable Sub-Components
+
+Each can be used independently for granular control:
+
+```astro
+---
+import { MetaTags, OpenGraph, TwitterCard, Robots, CanonicalUrl, LanguageAlternates, JsonLd, FaqJsonLd } from '@kurto/astro-seo-advanced'
+---
+```
+
+- **`<MetaTags />`** — `title`, `description`, `keywords`
+- **`<OpenGraph />`** — `title`, `description`, `url`, `ogType`, `siteName`, `locale`, `localeAlternates`, `image`, `articlePublishedTime`, `articleAuthor`
+- **`<TwitterCard />`** — `title`, `description`, `image`, `card`, `site`, `creator`
+- **`<Robots />`** — `robotsMeta`, `globalNoindex`, `extras`
+- **`<CanonicalUrl />`** — `url`
+- **`<LanguageAlternates />`** — `alternates: Array<{ href, hrefLang }>`
+- **`<JsonLd />`** — `doc`, `globalSettings` (uses `generateSchema()` from payload-seo-advanced/utilities)
+- **`<FaqJsonLd />`** — `items: Array<{ question, answer }>` (renders FAQPage schema, works in `<head>` or `<body>`)
+
+## Title Construction Priority
+
+1. `titleTemplate` — replaces `%s` with `meta.title`
+2. globalSettings — `meta.title {separator} siteName` (skipped if `meta.disableSiteName`)
+3. `meta.title` as-is
+4. `titleDefault` fallback
+
+## Image Handling
+
+`meta.image` accepts a full media object `{ url, width?, height?, alt?, mimeType? }` or a plain URL string. Falls back to `globalSettings.defaults.ogImage` when no per-page image is set.
+
+## Utility Exports
+
+```ts
+import { buildTitle, resolveImage, buildRobots, absoluteUrl } from '@kurto/astro-seo-advanced'
+```
+
+## Docs
+
+- [README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/astro-seo-advanced/README.md): Full documentation with all component prop tables and usage examples
+- [Source](https://github.com/kurto/viewingstudio-darkroom-plugins/tree/main/packages/astro-seo-advanced/src): TypeScript/Astro source code

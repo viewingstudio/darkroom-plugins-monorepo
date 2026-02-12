@@ -1,0 +1,54 @@
+# @kurto/payload-deploy-trigger
+
+> Payload CMS 3.x plugin for triggering deployments via webhooks (Cloudflare Pages, Vercel, Netlify, etc.) directly from the admin UI.
+
+- Peer dependencies: `payload` (^3.74.0), `@payloadcms/ui` (^3.74.0), `react` (^18 || ^19), `react-dom` (^18 || ^19)
+- Install: `pnpm add @kurto/payload-deploy-trigger`
+- Requires the `DEPLOY_HOOK_URL` environment variable. Never commit webhook URLs to your repository.
+
+## Plugin Config (`PayloadDeployTriggerConfig`)
+
+```ts
+import { payloadDeployTrigger } from '@kurto/payload-deploy-trigger'
+
+payloadDeployTrigger({
+  deployHookUrl: process.env.DEPLOY_HOOK_URL,  // webhook URL (default: process.env.DEPLOY_HOOK_URL)
+  cooldownSeconds: 30,                          // cooldown between deployments (default: 30)
+  timeoutMs: 10000,                             // webhook request timeout in ms (default: 10000)
+  showDashboardWidget: true,                    // show deploy widget on dashboard (default: true)
+  showActionButton: true,                       // show "Publish Changes" in admin actions (default: true)
+  disabled: false,                              // disable the plugin (default: false)
+})
+```
+
+## What the Plugin Creates
+
+- **`deployment-history` collection** — audit log of all deployments with user, timestamp, status (success/failed/timeout), duration, error messages. Access restricted to users with `developer` role.
+- **`deployment-metadata` global** — tracks last successful deployment timestamp and triggering user. Public read access.
+- **`POST /api/deploy` endpoint** — triggers the webhook. Requires authentication.
+- **Dashboard widget** — shows last deployment, quick deploy button, history (last 5), cooldown timer.
+- **Action button** — "Publish Changes" button in the admin actions menu.
+
+## Webhook Provider Examples
+
+```bash
+# Cloudflare Pages
+DEPLOY_HOOK_URL=https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/YOUR_HOOK_ID
+
+# Vercel
+DEPLOY_HOOK_URL=https://api.vercel.com/v1/integrations/deploy/YOUR_HOOK_ID
+
+# Netlify
+DEPLOY_HOOK_URL=https://api.netlify.com/build_hooks/YOUR_HOOK_ID
+```
+
+## Exported Types
+
+```ts
+import type { PayloadDeployTriggerConfig, DeploymentStatus } from '@kurto/payload-deploy-trigger'
+```
+
+## Docs
+
+- [README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-deploy-trigger/README.md): Full documentation with error handling details, security notes, and roadmap
+- [Source](https://github.com/kurto/viewingstudio-darkroom-plugins/tree/main/packages/payload-deploy-trigger/src): TypeScript source code

@@ -27,7 +27,7 @@ export function buildTitle(options: {
     return titleTemplate.replace('%s', baseTitle)
   }
 
-  if (!disableSiteName && siteName && separator !== undefined) {
+  if (!disableSiteName && siteName && separator != null) {
     const sep = separator === '' ? '' : ` ${separator} `
     return separator === '' ? baseTitle : `${baseTitle}${sep}${siteName}`
   }

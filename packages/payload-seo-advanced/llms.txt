@@ -1,0 +1,101 @@
+# @kurto/payload-seo-advanced
+
+> Advanced SEO plugin for Payload CMS 3.x. Extends the core `@payloadcms/plugin-seo` with global SEO settings, advanced per-page fields, and Schema.org structured data.
+
+- All features beyond base meta fields are opt-in. Pass `true` for defaults or an object for fine-grained control.
+- Peer dependencies: `payload`, `@payloadcms/ui`, `@payloadcms/translations` (all `^3.74.0`)
+- Install: `pnpm add @kurto/payload-seo-advanced`
+
+## Plugin Config (`SEOPluginConfig`)
+
+```ts
+import { payloadSeoAdvanced } from '@kurto/payload-seo-advanced'
+
+payloadSeoAdvanced({
+  collections: ['pages', 'posts'],       // CollectionSlug[] — collections to add SEO fields to
+  globals: ['homepage'],                  // GlobalSlug[] — globals to add SEO fields to
+  uploadsCollection: 'media',            // enables meta image field and global OG image
+  tabbedUI: true,                        // wrap content + SEO in tabbed layout
+  interfaceName: 'SEO Metadata',         // custom interface name for the meta group field
+  generateTitle: ({ doc }) => doc?.title ?? '',
+  generateDescription: ({ doc }) => doc?.excerpt ?? '',
+  generateImage: ({ doc }) => doc?.featuredImage,
+  generateURL: ({ doc, collectionConfig }) =>
+    `https://example.com/${collectionConfig?.slug}/${doc?.slug}`,
+  fieldsOverride: ({ defaultFields }) => defaultFields,  // override meta fields array
+  globalSettings: true,                  // boolean | GlobalSettingsConfig
+  advancedFields: true,                  // boolean | AdvancedFieldsConfig
+  structuredData: true,                  // boolean | StructuredDataConfig
+})
+```
+
+## Global Settings (`globalSettings`)
+
+Creates an SEO Settings global in the admin panel. Fields: `siteName`, `titleSeparator` (select: `-`, `|`, `•`), `defaults.ogImage` (upload), `defaults.fallbackDescription` (textarea), `knowledgeGraph` group (type, name, logo, contactEmail, contactPhone, address, socialLinks), `indexing.noindex` (checkbox).
+
+```ts
+globalSettings: {
+  slug: 'seo-settings',          // default: 'seo-settings'
+  adminGroup: 'SEO',             // default: auto-detected
+  access: { read: () => true },
+  fieldsOverride: ({ defaultFields }) => defaultFields,
+}
+```
+
+When enabled, the auto-generate title endpoint appends the site name using the configured separator.
+
+## Advanced Fields (`advancedFields`)
+
+Adds per-page fields after the SERP preview. All default to `true` when `advancedFields` is enabled.
+
+```ts
+advancedFields: {
+  canonicalUrl: true,    // auto-populated via beforeChange hook using generateURL
+  robotsMeta: true,      // select: index/noindex, follow/nofollow
+  focusKeyword: true,    // localized text field
+}
+```
+
+## Structured Data (`structuredData`)
+
+Adds Schema.org structured data group with schema type selector and conditional fields.
+
+```ts
+structuredData: {
+  schemaTypes: ['article', 'product', 'localBusiness'],  // default: all types
+  authorCollection: 'users',                              // default: 'users'
+  fieldsOverride: ({ defaultFields }) => defaultFields,
+}
+```
+
+Available schema types: `article`, `product`, `service`, `event`, `localBusiness`. Each type has conditional fields (e.g. Article: author + publishDate, Product: price + currency + inStock).
+
+## `fieldsOverride` Pattern
+
+Every feature area exposes a `fieldsOverride` callback: `(args: { defaultFields: Field[] }) => Field[]`. This gives full programmatic control over which fields are included.
+
+## Export Paths
+
+| Path | Contents |
+|---|---|
+| `@kurto/payload-seo-advanced` | `payloadSeoAdvanced` plugin function |
+| `@kurto/payload-seo-advanced/types` | All TypeScript types (`SEOPluginConfig`, `AdvancedFieldsConfig`, `GlobalSettingsConfig`, `StructuredDataConfig`, etc.) |
+| `@kurto/payload-seo-advanced/fields` | Individual field factory functions |
+| `@kurto/payload-seo-advanced/client` | React components (for Payload admin UI) |
+| `@kurto/payload-seo-advanced/utilities` | `generateSchema(doc, globalSettings?)` — pure function returning JSON-LD object or `null` |
+
+## `generateSchema` Utility
+
+```ts
+import { generateSchema } from '@kurto/payload-seo-advanced/utilities'
+
+const jsonLd = generateSchema(page, seoSettings)
+// Returns JSON-LD object or null if minimum required fields are missing
+```
+
+Minimum requirements: Article needs title, Product needs price, Service needs title, Event needs startDate, Local Business needs title.
+
+## Docs
+
+- [README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-seo-advanced/README.md): Full documentation with all config options, field tables, and usage examples
+- [Source](https://github.com/kurto/viewingstudio-darkroom-plugins/tree/main/packages/payload-seo-advanced/src): TypeScript source code
