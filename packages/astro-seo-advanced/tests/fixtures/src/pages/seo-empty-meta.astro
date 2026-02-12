@@ -1,0 +1,18 @@
+---
+import { SEO } from '@kurto/astro-seo-advanced'
+
+const meta = {}
+---
+
+<html>
+  <head>
+    <SEO
+      meta={meta as any}
+      siteUrl="https://example.com"
+      currentPath="/empty-meta"
+    />
+  </head>
+  <body>
+    <p>SEO with empty meta object</p>
+  </body>
+</html>

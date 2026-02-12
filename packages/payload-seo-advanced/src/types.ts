@@ -106,8 +106,56 @@ export type SEOPluginConfig = {
 /**
  * Convenience type for the meta field shape.
  * For full generated types, use the `Meta` type from your project's `payload-types.ts`.
+ *
+ * String fields accept `null` because Payload CMS stores empty optional fields as `null`
+ * rather than `undefined`. This ensures data from Payload passes through without type errors.
  */
 export type Meta = {
+  canonicalUrl?: string | null
+  description?: string | null
+  disableSiteName?: boolean | null
+  focusKeyword?: string | null
+  image?: any
+  keywords?: string | null
+  robotsMeta?: string | null
+  structuredData?: Record<string, any> | null
+  title?: string | null
+}
+
+/**
+ * Sanitize a Payload CMS `Meta` object by coercing `null` values to `undefined`.
+ * Use this at the boundary between your CMS data and frontend components
+ * so downstream code only needs to handle `string | undefined`.
+ *
+ * Returns `undefined` if the input is nullish.
+ *
+ * @example
+ * ```ts
+ * import { sanitizeSeo } from '@kurto/payload-seo-advanced/types'
+ * const meta = sanitizeSeo(page.meta) // Meta (with null stripped) | undefined
+ * ```
+ */
+export function sanitizeSeo(meta: Meta | null | undefined): SanitizedMeta | undefined {
+  if (meta == null) return undefined
+
+  return {
+    canonicalUrl: meta.canonicalUrl ?? undefined,
+    description: meta.description ?? undefined,
+    disableSiteName: meta.disableSiteName ?? undefined,
+    focusKeyword: meta.focusKeyword ?? undefined,
+    image: meta.image ?? undefined,
+    keywords: meta.keywords ?? undefined,
+    robotsMeta: meta.robotsMeta ?? undefined,
+    structuredData: meta.structuredData ?? undefined,
+    title: meta.title ?? undefined,
+  }
+}
+
+/**
+ * A sanitized version of `Meta` where `null` has been coerced to `undefined`.
+ * This is the return type of `sanitizeSeo()`.
+ */
+export type SanitizedMeta = {
   canonicalUrl?: string
   description?: string
   disableSiteName?: boolean

@@ -1,6 +1,7 @@
-import type { Meta } from '@kurto/payload-seo-advanced/types'
+import type { Meta, SanitizedMeta } from '@kurto/payload-seo-advanced/types'
 
-export type { Meta }
+export type { Meta, SanitizedMeta }
+export { sanitizeSeo } from '@kurto/payload-seo-advanced/types'
 
 export interface MediaObject {
   alt?: string
@@ -42,37 +43,37 @@ export interface SEOProps {
 }
 
 export interface MetaTagsProps {
-  description?: string
-  keywords?: string
+  description?: string | null
+  keywords?: string | null
   title: string
 }
 
 export interface OpenGraphProps {
-  articleAuthor?: string
-  articlePublishedTime?: string
-  description?: string
+  articleAuthor?: string | null
+  articlePublishedTime?: string | null
+  description?: string | null
   image?: MetaImage
-  locale?: string
+  locale?: string | null
   localeAlternates?: string[]
   ogType?: string
-  siteName?: string
+  siteName?: string | null
   title: string
   url: string
 }
 
 export interface TwitterCardProps {
   card?: 'summary' | 'summary_large_image'
-  creator?: string
-  description?: string
+  creator?: string | null
+  description?: string | null
   image?: MetaImage
-  site?: string
+  site?: string | null
   title: string
 }
 
 export interface RobotsProps {
-  extras?: string
+  extras?: string | null
   globalNoindex?: boolean
-  robotsMeta?: string
+  robotsMeta?: string | null
 }
 
 export interface CanonicalUrlProps {

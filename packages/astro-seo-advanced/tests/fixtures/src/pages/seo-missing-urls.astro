@@ -1,0 +1,21 @@
+---
+import { SEO } from '@kurto/astro-seo-advanced'
+
+const meta = {
+  title: 'Page With Missing URLs',
+  description: 'This page has no siteUrl or currentPath',
+}
+---
+
+<html>
+  <head>
+    <SEO
+      meta={meta as any}
+      siteUrl=""
+      currentPath=""
+    />
+  </head>
+  <body>
+    <p>SEO with missing URL props</p>
+  </body>
+</html>

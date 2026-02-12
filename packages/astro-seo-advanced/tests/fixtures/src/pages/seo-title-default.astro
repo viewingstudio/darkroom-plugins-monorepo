@@ -1,0 +1,21 @@
+---
+import { SEO } from '@kurto/astro-seo-advanced'
+
+const meta = {
+  description: 'Page using titleDefault fallback',
+}
+---
+
+<html>
+  <head>
+    <SEO
+      meta={meta as any}
+      siteUrl="https://example.com"
+      currentPath="/title-default"
+      titleDefault="Fallback Title"
+    />
+  </head>
+  <body>
+    <p>SEO with titleDefault fallback</p>
+  </body>
+</html>

@@ -10,21 +10,14 @@ import type { MetaImage, MediaObject } from './types.js'
  * 4. titleDefault fallback
  */
 export function buildTitle(options: {
-  disableSiteName?: boolean
-  metaTitle?: string
-  separator?: string
-  siteName?: string
-  titleDefault?: string
-  titleTemplate?: string
+  disableSiteName?: boolean | null
+  metaTitle?: string | null
+  separator?: string | null
+  siteName?: string | null
+  titleDefault?: string | null
+  titleTemplate?: string | null
 }): string {
-  const {
-    disableSiteName,
-    metaTitle,
-    separator,
-    siteName,
-    titleDefault,
-    titleTemplate,
-  } = options
+  const { disableSiteName, metaTitle, separator, siteName, titleDefault, titleTemplate } = options
 
   const baseTitle = metaTitle || titleDefault || ''
 
@@ -45,10 +38,7 @@ export function buildTitle(options: {
 /**
  * Resolve a MetaImage (string | MediaObject | null) into structured parts.
  */
-export function resolveImage(
-  image: MetaImage,
-  fallbackImage?: MetaImage,
-): MediaObject | null {
+export function resolveImage(image: MetaImage, fallbackImage?: MetaImage): MediaObject | null {
   const img = image || fallbackImage
   if (!img) return null
 
@@ -67,9 +57,9 @@ export function resolveImage(
  * Build the robots meta content string.
  */
 export function buildRobots(options: {
-  extras?: string
+  extras?: string | null
   globalNoindex?: boolean
-  robotsMeta?: string
+  robotsMeta?: string | null
 }): string | null {
   const { extras, globalNoindex, robotsMeta } = options
 
@@ -77,7 +67,10 @@ export function buildRobots(options: {
 
   if (robotsMeta) {
     directives.push(
-      ...robotsMeta.split(',').map((d) => d.trim()).filter(Boolean),
+      ...robotsMeta
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean),
     )
   }
 
@@ -87,7 +80,10 @@ export function buildRobots(options: {
 
   if (extras) {
     directives.push(
-      ...extras.split(',').map((d) => d.trim()).filter(Boolean),
+      ...extras
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean),
     )
   }
 
@@ -100,6 +96,51 @@ export function buildRobots(options: {
   }
 
   return content
+}
+
+/**
+ * Validate SEO props and return an array of warning messages for missing or invalid data.
+ * Warnings are logged to the console in development mode to aid debugging.
+ */
+export function validateSEOProps(props: {
+  currentPath?: unknown
+  meta?: unknown
+  siteUrl?: unknown
+  titleDefault?: unknown
+}): string[] {
+  const warnings: string[] = []
+
+  if (!props.meta || typeof props.meta !== 'object') {
+    warnings.push(
+      '[astro-seo-advanced] "meta" prop is missing or not an object. No SEO tags will be generated correctly.',
+    )
+  } else {
+    const meta = props.meta as Record<string, unknown>
+    if (!meta.title && !props.titleDefault) {
+      warnings.push(
+        '[astro-seo-advanced] "meta.title" is empty and no "titleDefault" was provided. The page will have no <title> tag.',
+      )
+    }
+    if (!meta.description) {
+      warnings.push(
+        '[astro-seo-advanced] "meta.description" is empty. The page will have no meta description.',
+      )
+    }
+  }
+
+  if (!props.siteUrl || typeof props.siteUrl !== 'string') {
+    warnings.push(
+      '[astro-seo-advanced] "siteUrl" prop is missing or empty. Canonical URL and og:url will be incorrect.',
+    )
+  }
+
+  if (!props.currentPath || typeof props.currentPath !== 'string') {
+    warnings.push(
+      '[astro-seo-advanced] "currentPath" prop is missing or empty. Canonical URL and og:url will be incorrect.',
+    )
+  }
+
+  return warnings
 }
 
 /**

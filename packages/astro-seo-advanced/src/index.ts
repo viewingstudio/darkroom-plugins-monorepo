@@ -8,6 +8,8 @@ export { default as LanguageAlternates } from './LanguageAlternates.astro'
 export { default as JsonLd } from './JsonLd.astro'
 export { default as FaqJsonLd } from './FaqJsonLd.astro'
 
+export { validateSEOProps } from './utils.js'
+
 export type {
   SEOProps,
   MetaTagsProps,
@@ -24,6 +26,9 @@ export type {
   MediaObject,
   MetaImage,
   Meta,
+  SanitizedMeta,
 } from './types.js'
+
+export { sanitizeSeo } from './types.js'
 
 export { buildTitle, resolveImage, buildRobots, absoluteUrl } from './utils.js'

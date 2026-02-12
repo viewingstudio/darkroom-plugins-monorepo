@@ -1,6 +1,6 @@
 ---
 import type { SEOProps } from './types.js'
-import { buildTitle, resolveImage, absoluteUrl } from './utils.js'
+import { buildTitle, resolveImage, absoluteUrl, validateSEOProps } from './utils.js'
 import MetaTags from './MetaTags.astro'
 import OpenGraph from './OpenGraph.astro'
 import TwitterCard from './TwitterCard.astro'
@@ -12,10 +12,10 @@ import JsonLd from './JsonLd.astro'
 interface Props extends SEOProps {}
 
 const {
-  meta,
+  meta: rawMeta,
   globalSettings,
-  siteUrl,
-  currentPath,
+  siteUrl = '',
+  currentPath = '',
   doc,
   titleTemplate,
   titleDefault,
@@ -30,6 +30,16 @@ const {
   extend,
 } = Astro.props
 
+const seoWarnings = validateSEOProps({ meta: rawMeta, siteUrl, currentPath, titleDefault })
+
+if (seoWarnings.length > 0 && import.meta.env.DEV) {
+  seoWarnings.forEach((w) => console.warn(w))
+}
+
+const meta = (rawMeta && typeof rawMeta === 'object' ? rawMeta : {}) as NonNullable<
+  SEOProps['meta']
+>
+
 const title = buildTitle({
   metaTitle: meta.title,
   titleTemplate,
@@ -39,35 +49,30 @@ const title = buildTitle({
   disableSiteName: meta.disableSiteName,
 })
 
-const description = meta.description || globalSettings?.defaults?.fallbackDescription || undefined
+const description =
+  meta.description ||
+  globalSettings?.defaults?.fallbackDescription ||
+  (undefined as string | undefined)
 
 const image = resolveImage(meta.image, globalSettings?.defaults?.ogImage)
 
-const canonicalUrl = meta.canonicalUrl
-  ? absoluteUrl(siteUrl, meta.canonicalUrl)
-  : absoluteUrl(siteUrl, currentPath)
+const canonicalUrl =
+  meta.canonicalUrl ? absoluteUrl(siteUrl, meta.canonicalUrl) : absoluteUrl(siteUrl, currentPath)
 
 const pageUrl = absoluteUrl(siteUrl, currentPath)
 
 const isArticle = meta.structuredData?.schemaType === 'article'
 const resolvedOgType = isArticle ? 'article' : ogType
 
-const articlePublishedTime = isArticle
-  ? meta.structuredData?.articleFields?.publishDate
-  : undefined
+const articlePublishedTime = isArticle ? meta.structuredData?.articleFields?.publishDate : undefined
 
-const articleAuthor = isArticle
-  ? meta.structuredData?.articleFields?.author
-  : undefined
+const articleAuthor = isArticle ? meta.structuredData?.articleFields?.author : undefined
 
 const jsonLdDoc = doc || { meta, title: meta.title }
 ---
 
-<MetaTags
-  title={title}
-  description={description}
-  keywords={meta.keywords}
-/>
+{seoWarnings.length > 0 && <meta name="seo-warnings" content={seoWarnings.join(' | ')} />}
+<MetaTags title={title} description={description} keywords={meta.keywords} />
 <OpenGraph
   title={meta.title || titleDefault || ''}
   description={description}
@@ -94,15 +99,11 @@ const jsonLdDoc = doc || { meta, title: meta.title }
   extras={robotsExtras}
 />
 <CanonicalUrl url={canonicalUrl} />
-{languageAlternates && languageAlternates.length > 0 && (
-  <LanguageAlternates alternates={languageAlternates} />
-)}
-{jsonLdDoc && (
-  <JsonLd doc={jsonLdDoc} globalSettings={globalSettings} />
-)}
-{extend?.meta?.map((attrs) => (
-  <meta {...attrs} />
-))}
-{extend?.link?.map((attrs) => (
-  <link {...attrs} />
-))}
+{
+  languageAlternates && languageAlternates.length > 0 && (
+    <LanguageAlternates alternates={languageAlternates} />
+  )
+}
+{jsonLdDoc && <JsonLd doc={jsonLdDoc} globalSettings={globalSettings} />}
+{extend?.meta?.map((attrs) => <meta {...attrs} />)}
+{extend?.link?.map((attrs) => <link {...attrs} />)}
