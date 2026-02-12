@@ -23,7 +23,6 @@ import { PreviewField } from './fields/Preview/index.js'
 import { RobotsMetaField } from './fields/RobotsMeta/index.js'
 import { StructuredDataFields } from './fields/StructuredData/index.js'
 import { createSeoSettingsGlobal } from './globals/SeoSettings.js'
-import { populateCanonicalUrl } from './hooks/populateCanonicalUrl.js'
 import { translations } from './translations/index.js'
 
 export const payloadSeoAdvanced =
@@ -154,21 +153,6 @@ export const payloadSeoAdvanced =
           const isEnabled = pluginConfig?.collections?.includes(slug)
 
           if (isEnabled) {
-            // Add canonical URL hook when advanced fields enabled
-            const extraHooks: { beforeChange?: any[] } = {}
-            if (pluginConfig?.advancedFields) {
-              const advConfig: AdvancedFieldsConfig =
-                typeof pluginConfig.advancedFields === 'object' ? pluginConfig.advancedFields : {}
-              if (advConfig.canonicalUrl !== false) {
-                extraHooks.beforeChange = [
-                  populateCanonicalUrl({
-                    generateURL: pluginConfig.generateURL,
-                    serverURL: config.serverURL,
-                  }),
-                ]
-              }
-            }
-
             if (pluginConfig?.tabbedUI) {
               // prevent issues with auth enabled collections having an email field that shouldn't be moved to the SEO tab
               const emailField =
@@ -227,10 +211,7 @@ export const payloadSeoAdvanced =
                 ],
                 hooks: {
                   ...collection.hooks,
-                  beforeChange: [
-                    ...(collection.hooks?.beforeChange ?? []),
-                    ...(extraHooks.beforeChange ?? []),
-                  ],
+                  beforeChange: [...(collection.hooks?.beforeChange ?? [])],
                 },
               }
             }
@@ -238,13 +219,6 @@ export const payloadSeoAdvanced =
             return {
               ...collection,
               fields: [...(collection?.fields || []), ...seoFields],
-              hooks: {
-                ...collection.hooks,
-                beforeChange: [
-                  ...(collection.hooks?.beforeChange ?? []),
-                  ...(extraHooks.beforeChange ?? []),
-                ],
-              },
             }
           }
 
