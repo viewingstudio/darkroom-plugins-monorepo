@@ -204,7 +204,7 @@ export function createSeoSettingsGlobal(
 
   return {
     slug: config.slug ?? 'seo-settings',
-    access: config.access,
+    access: config.access ?? { read: () => true },
     admin: {
       group: config.adminGroup,
     },
