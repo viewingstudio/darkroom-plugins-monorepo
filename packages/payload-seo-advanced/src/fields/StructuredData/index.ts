@@ -37,12 +37,11 @@ export const StructuredDataFields = (config?: StructuredDataConfig): GroupField 
       ...(schemaTypes.includes('article')
         ? [
             {
-              name: 'articleFields',
+              name: 'article',
               type: 'group' as const,
               label: 'Article Details',
               admin: {
-                condition: (_: any, siblingData: any) =>
-                  siblingData?.schemaType === 'article',
+                condition: (_: any, siblingData: any) => siblingData?.schemaType === 'article',
               },
               fields: [
                 {
@@ -68,12 +67,11 @@ export const StructuredDataFields = (config?: StructuredDataConfig): GroupField 
       ...(schemaTypes.includes('product')
         ? [
             {
-              name: 'productFields',
+              name: 'product',
               type: 'group' as const,
               label: 'Product Details',
               admin: {
-                condition: (_: any, siblingData: any) =>
-                  siblingData?.schemaType === 'product',
+                condition: (_: any, siblingData: any) => siblingData?.schemaType === 'product',
               },
               fields: [
                 {
@@ -104,12 +102,11 @@ export const StructuredDataFields = (config?: StructuredDataConfig): GroupField 
       ...(schemaTypes.includes('service')
         ? [
             {
-              name: 'serviceFields',
+              name: 'service',
               type: 'group' as const,
               label: 'Service Details',
               admin: {
-                condition: (_: any, siblingData: any) =>
-                  siblingData?.schemaType === 'service',
+                condition: (_: any, siblingData: any) => siblingData?.schemaType === 'service',
               },
               fields: [
                 {
@@ -135,12 +132,11 @@ export const StructuredDataFields = (config?: StructuredDataConfig): GroupField 
       ...(schemaTypes.includes('event')
         ? [
             {
-              name: 'eventFields',
+              name: 'event',
               type: 'group' as const,
               label: 'Event Details',
               admin: {
-                condition: (_: any, siblingData: any) =>
-                  siblingData?.schemaType === 'event',
+                condition: (_: any, siblingData: any) => siblingData?.schemaType === 'event',
               },
               fields: [
                 {
@@ -171,7 +167,7 @@ export const StructuredDataFields = (config?: StructuredDataConfig): GroupField 
       ...(schemaTypes.includes('localBusiness')
         ? [
             {
-              name: 'localBusinessFields',
+              name: 'business',
               type: 'group' as const,
               label: 'Local Business Details',
               admin: {
@@ -207,8 +203,7 @@ export const StructuredDataFields = (config?: StructuredDataConfig): GroupField 
                   type: 'group' as const,
                   label: 'Address',
                   admin: {
-                    condition: (_: any, siblingData: any) =>
-                      !siblingData?.useGlobalAddress,
+                    condition: (_: any, siblingData: any) => !siblingData?.useGlobalAddress,
                   },
                   fields: [
                     {

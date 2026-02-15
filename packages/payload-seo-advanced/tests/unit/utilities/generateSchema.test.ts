@@ -111,7 +111,7 @@ describe('generateSchema', () => {
           image: { url: 'https://example.com/image.jpg' },
           structuredData: {
             schemaType: 'article',
-            articleFields: {
+            article: {
               author: 'John Doe',
               publishDate: '2023-01-01',
             },
@@ -139,7 +139,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'article',
-            articleFields: {},
+            article: {},
           },
         },
       }
@@ -159,7 +159,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'product',
-            productFields: {
+            product: {
               price: 29.99,
               inStock: true,
             },
@@ -186,7 +186,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'product',
-            productFields: {},
+            product: {},
           },
         },
       }
@@ -200,7 +200,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'product',
-            productFields: {
+            product: {
               price: 19.99,
               currency: 'EUR',
               inStock: false,
@@ -245,7 +245,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'service',
-            serviceFields: {
+            service: {
               serviceType: 'Consulting',
               provider: 'ACME Corp',
               areaServed: 'United States',
@@ -275,7 +275,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'event',
-            eventFields: {
+            event: {
               startDate: '2023-12-01T10:00:00Z',
             },
           },
@@ -296,7 +296,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'event',
-            eventFields: {},
+            event: {},
           },
         },
       }
@@ -310,7 +310,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'event',
-            eventFields: {
+            event: {
               startDate: '2023-12-01T10:00:00Z',
               endDate: '2023-12-01T12:00:00Z',
               locationName: 'Conference Center',
@@ -357,7 +357,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'localBusiness',
-            localBusinessFields: {
+            business: {
               businessType: 'Restaurant',
               priceRange: '$$',
               address: {
@@ -394,7 +394,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'localBusiness',
-            localBusinessFields: {
+            business: {
               useGlobalAddress: true,
             },
           },
@@ -433,7 +433,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'localBusiness',
-            localBusinessFields: {
+            business: {
               useGlobalAddress: true,
               address: {
                 streetAddress: '123 Local St',
@@ -467,7 +467,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'localBusiness',
-            localBusinessFields: {
+            business: {
               useGlobalAddress: true,
             },
           },
@@ -491,7 +491,7 @@ describe('generateSchema', () => {
           description: '',
           structuredData: {
             schemaType: 'article',
-            articleFields: {
+            article: {
               author: undefined,
               publishDate: null,
             },
@@ -512,7 +512,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'article',
-            articleFields: {
+            article: {
               author: 'John Doe',
               publishDate: undefined,
             },
@@ -537,7 +537,7 @@ describe('generateSchema', () => {
         meta: {
           structuredData: {
             schemaType: 'product',
-            productFields: {
+            product: {
               price: 0,
               inStock: false,
             },

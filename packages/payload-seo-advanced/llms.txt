@@ -68,7 +68,15 @@ structuredData: {
 }
 ```
 
-Available schema types: `article`, `product`, `service`, `event`, `localBusiness`. Each type has conditional fields (e.g. Article: author + publishDate, Product: price + currency + inStock).
+Available schema types: `article`, `product`, `service`, `event`, `localBusiness`. Each type has conditional fields accessed via shortened field names to prevent Postgres column name limits:
+
+| Schema Type | Field Key | Sub-fields |
+|---|---|---|
+| `article` | `article` | `author` (text), `publishDate` (date) |
+| `product` | `product` | `price` (number), `currency` (text, default: USD), `inStock` (checkbox) |
+| `service` | `service` | `serviceType` (text), `provider` (text), `areaServed` (text) |
+| `event` | `event` | `startDate` (date), `endDate` (date), `locationName` (text), `locationAddress` (text) |
+| `localBusiness` | `business` | `businessType` (text), `priceRange` (text), `useGlobalAddress` (checkbox), `address` (group with `streetAddress`, `city`, `state`, `postalCode`, `country`) |
 
 ## `fieldsOverride` Pattern
 

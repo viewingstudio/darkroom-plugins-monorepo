@@ -22,15 +22,15 @@ export function generateSchema(
 
   switch (sd.schemaType) {
     case 'article':
-      return buildArticle(headline, sd.articleFields, doc)
+      return buildArticle(headline, sd.article, doc)
     case 'product':
-      return buildProduct(headline, sd.productFields)
+      return buildProduct(headline, sd.product)
     case 'service':
-      return buildService(headline, sd.serviceFields)
+      return buildService(headline, sd.service)
     case 'event':
-      return buildEvent(headline, sd.eventFields)
+      return buildEvent(headline, sd.event)
     case 'localBusiness':
-      return buildLocalBusiness(headline, sd.localBusinessFields, globalSettings)
+      return buildLocalBusiness(headline, sd.business, globalSettings)
     default:
       return null
   }
