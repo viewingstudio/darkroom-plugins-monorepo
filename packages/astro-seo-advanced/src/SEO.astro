@@ -64,9 +64,9 @@ const pageUrl = absoluteUrl(siteUrl, currentPath)
 const isArticle = meta.structuredData?.schemaType === 'article'
 const resolvedOgType = isArticle ? 'article' : ogType
 
-const articlePublishedTime = isArticle ? meta.structuredData?.articleFields?.publishDate : undefined
+const articlePublishedTime = isArticle ? meta.structuredData?.article?.publishDate : undefined
 
-const articleAuthor = isArticle ? meta.structuredData?.articleFields?.author : undefined
+const articleAuthor = isArticle ? meta.structuredData?.article?.author : undefined
 
 const jsonLdDoc = doc || { meta, title: meta.title }
 ---
