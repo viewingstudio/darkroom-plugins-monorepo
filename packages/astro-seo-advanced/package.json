@@ -1,6 +1,6 @@
 {
   "name": "@kurto/astro-seo-advanced",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Astro components for rendering SEO head markup from @kurto/payload-seo-advanced data",
   "keywords": [
     "astro",
@@ -36,7 +36,7 @@
     "astro": ">=5.17.0"
   },
   "dependencies": {
-    "@kurto/payload-seo-advanced": "^1.1.0"
+    "@kurto/payload-seo-advanced": "^2.0.0"
   },
   "scripts": {
     "test": "playwright test",

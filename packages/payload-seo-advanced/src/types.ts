@@ -118,7 +118,7 @@ export type Meta = {
   image?: any
   keywords?: string | null
   robotsMeta?: string | null
-  structuredData?: Record<string, any> | null
+  structuredData?: Record<string, any>[] | null
   title?: string | null
 }
 
@@ -163,6 +163,6 @@ export type SanitizedMeta = {
   image?: any
   keywords?: string
   robotsMeta?: string
-  structuredData?: Record<string, any>
+  structuredData?: Record<string, any>[]
   title?: string
 }

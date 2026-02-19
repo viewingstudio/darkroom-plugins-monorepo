@@ -1,4 +1,4 @@
-import type { Field, GlobalConfig } from 'payload'
+import type { Block, Field, GlobalConfig } from 'payload'
 
 import type { GlobalSettingsConfig } from '../types.js'
 
@@ -60,123 +60,169 @@ export function createSeoSettingsGlobal(
     },
     {
       name: 'knowledgeGraph',
-      type: 'group',
+      type: 'blocks',
       label: 'Knowledge Graph',
+      maxRows: 1,
       admin: {
         description: 'Schema.org Organization or Person data for search engine knowledge panels.',
       },
-      fields: [
+      blocks: [
         {
-          name: 'type',
-          type: 'select',
-          label: 'Entity Type',
-          defaultValue: 'organization',
-          options: [
-            { label: 'Organization', value: 'organization' },
-            { label: 'Person', value: 'person' },
-          ],
-        },
-        {
-          name: 'name',
-          type: 'text',
-          label: 'Name',
-          localized: true,
-        },
-        ...(uploadsCollection
-          ? [
-              {
-                name: 'logo',
-                type: 'upload' as const,
-                label: 'Logo',
-                relationTo: uploadsCollection,
-                admin: {
-                  condition: (_: any, siblingData: any) => siblingData?.type === 'organization',
-                },
-              },
-            ]
-          : []),
-        {
-          name: 'contactEmail',
-          type: 'email',
-          label: 'Contact Email',
-        },
-        {
-          name: 'contactPhone',
-          type: 'text',
-          label: 'Contact Phone',
-        },
-        {
-          name: 'address',
-          type: 'group',
-          label: 'Address',
-          admin: {
-            condition: (_: any, siblingData: any) => siblingData?.type === 'organization',
+          slug: 'organization',
+          labels: {
+            singular: 'Organization',
+            plural: 'Organizations',
           },
           fields: [
             {
-              name: 'streetAddress',
+              name: 'name',
               type: 'text',
-              label: 'Street Address',
+              label: 'Name',
+              localized: true,
+            },
+            ...(uploadsCollection
+              ? [
+                  {
+                    name: 'logo',
+                    type: 'upload' as const,
+                    label: 'Logo',
+                    relationTo: uploadsCollection,
+                  },
+                ]
+              : []),
+            {
+              name: 'contactEmail',
+              type: 'email',
+              label: 'Contact Email',
             },
             {
-              type: 'row',
+              name: 'contactPhone',
+              type: 'text',
+              label: 'Contact Phone',
+            },
+            {
+              name: 'address',
+              type: 'group',
+              label: 'Address',
               fields: [
                 {
-                  name: 'city',
+                  name: 'streetAddress',
                   type: 'text',
-                  label: 'City',
+                  label: 'Street Address',
                 },
                 {
-                  name: 'state',
-                  type: 'text',
-                  label: 'State / Province',
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'city',
+                      type: 'text',
+                      label: 'City',
+                    },
+                    {
+                      name: 'state',
+                      type: 'text',
+                      label: 'State / Province',
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'postalCode',
+                      type: 'text',
+                      label: 'Postal Code',
+                    },
+                    {
+                      name: 'country',
+                      type: 'text',
+                      label: 'Country',
+                    },
+                  ],
                 },
               ],
             },
             {
-              type: 'row',
+              name: 'socialLinks',
+              type: 'array',
+              label: 'Social Links',
               fields: [
                 {
-                  name: 'postalCode',
-                  type: 'text',
-                  label: 'Postal Code',
+                  name: 'platform',
+                  type: 'select',
+                  label: 'Platform',
+                  options: [
+                    { label: 'Facebook', value: 'facebook' },
+                    { label: 'Twitter / X', value: 'twitter' },
+                    { label: 'Instagram', value: 'instagram' },
+                    { label: 'LinkedIn', value: 'linkedin' },
+                    { label: 'YouTube', value: 'youtube' },
+                    { label: 'TikTok', value: 'tiktok' },
+                    { label: 'Pinterest', value: 'pinterest' },
+                    { label: 'GitHub', value: 'github' },
+                  ],
                 },
                 {
-                  name: 'country',
+                  name: 'url',
                   type: 'text',
-                  label: 'Country',
+                  label: 'URL',
                 },
               ],
             },
           ],
-        },
+        } as Block,
         {
-          name: 'socialLinks',
-          type: 'array',
-          label: 'Social Links',
+          slug: 'person',
+          labels: {
+            singular: 'Person',
+            plural: 'People',
+          },
           fields: [
             {
-              name: 'platform',
-              type: 'select',
-              label: 'Platform',
-              options: [
-                { label: 'Facebook', value: 'facebook' },
-                { label: 'Twitter / X', value: 'twitter' },
-                { label: 'Instagram', value: 'instagram' },
-                { label: 'LinkedIn', value: 'linkedin' },
-                { label: 'YouTube', value: 'youtube' },
-                { label: 'TikTok', value: 'tiktok' },
-                { label: 'Pinterest', value: 'pinterest' },
-                { label: 'GitHub', value: 'github' },
-              ],
+              name: 'name',
+              type: 'text',
+              label: 'Name',
+              localized: true,
             },
             {
-              name: 'url',
+              name: 'contactEmail',
+              type: 'email',
+              label: 'Contact Email',
+            },
+            {
+              name: 'contactPhone',
               type: 'text',
-              label: 'URL',
+              label: 'Contact Phone',
+            },
+            {
+              name: 'socialLinks',
+              type: 'array',
+              label: 'Social Links',
+              fields: [
+                {
+                  name: 'platform',
+                  type: 'select',
+                  label: 'Platform',
+                  options: [
+                    { label: 'Facebook', value: 'facebook' },
+                    { label: 'Twitter / X', value: 'twitter' },
+                    { label: 'Instagram', value: 'instagram' },
+                    { label: 'LinkedIn', value: 'linkedin' },
+                    { label: 'YouTube', value: 'youtube' },
+                    { label: 'TikTok', value: 'tiktok' },
+                    { label: 'Pinterest', value: 'pinterest' },
+                    { label: 'GitHub', value: 'github' },
+                  ],
+                },
+                {
+                  name: 'url',
+                  type: 'text',
+                  label: 'URL',
+                },
+              ],
             },
           ],
-        },
+        } as Block,
       ],
     },
     {

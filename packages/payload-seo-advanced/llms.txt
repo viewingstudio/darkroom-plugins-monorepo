@@ -31,7 +31,11 @@ payloadSeoAdvanced({
 
 ## Global Settings (`globalSettings`)
 
-Creates an SEO Settings global in the admin panel. Fields: `siteName`, `titleSeparator` (select: `-`, `|`, `•`), `defaults.ogImage` (upload), `defaults.fallbackDescription` (textarea), `knowledgeGraph` group (type, name, logo, contactEmail, contactPhone, address, socialLinks), `indexing.noindex` (checkbox).
+Creates an SEO Settings global in the admin panel. Fields: `siteName`, `titleSeparator` (select: `-`, `|`, `•`), `defaults.ogImage` (upload), `defaults.fallbackDescription` (textarea), `knowledgeGraph` blocks field (maxRows: 1) with `organization` and `person` block types, `indexing.noindex` (checkbox).
+
+**Knowledge Graph blocks:**
+- **Organization block**: `name`, `logo` (upload, if uploadsCollection configured), `contactEmail`, `contactPhone`, `address` (group with street, city, state, postal, country), `socialLinks` (array)
+- **Person block**: `name`, `contactEmail`, `contactPhone`, `socialLinks` (array)
 
 ```ts
 globalSettings: {
@@ -58,25 +62,28 @@ advancedFields: {
 
 ## Structured Data (`structuredData`)
 
-Adds Schema.org structured data group with schema type selector and conditional fields.
+Adds Schema.org structured data using a Payload `blocks` field (maxRows: 1). Each schema type is its own block with flat fields. With the Postgres adapter's `blocksAsJSON: true` option (user-configured), blocks store as JSON columns rather than proliferating database columns.
 
 ```ts
 structuredData: {
   schemaTypes: ['article', 'product', 'localBusiness'],  // default: all types
-  authorCollection: 'users',                              // default: 'users'
   fieldsOverride: ({ defaultFields }) => defaultFields,
 }
 ```
 
-Available schema types: `article`, `product`, `service`, `event`, `localBusiness`. Each type has conditional fields accessed via shortened field names to prevent Postgres column name limits:
+Available block types: `article`, `product`, `service`, `event`, `localBusiness`. Each block has flat fields directly on the block (no nested groups):
 
-| Schema Type | Field Key | Sub-fields |
-|---|---|---|
-| `article` | `article` | `author` (text), `publishDate` (date) |
-| `product` | `product` | `price` (number), `currency` (text, default: USD), `inStock` (checkbox) |
-| `service` | `service` | `serviceType` (text), `provider` (text), `areaServed` (text) |
-| `event` | `event` | `startDate` (date), `endDate` (date), `locationName` (text), `locationAddress` (text) |
-| `localBusiness` | `business` | `businessType` (text), `priceRange` (text), `useGlobalAddress` (checkbox), `address` (group with `streetAddress`, `city`, `state`, `postalCode`, `country`) |
+| Block Type | Fields |
+|---|---|
+| `article` | `author` (text), `publishDate` (date) |
+| `product` | `price` (number), `currency` (text, default: USD), `inStock` (checkbox) |
+| `service` | `serviceType` (text), `provider` (text), `areaServed` (text) |
+| `event` | `startDate` (date), `endDate` (date), `locationName` (text), `locationAddress` (text) |
+| `localBusiness` | `businessType` (text), `priceRange` (text), `useGlobalAddress` (checkbox), `address` (group with `streetAddress`, `city`, `state`, `postalCode`, `country`) |
+
+**Data shape:** `meta.structuredData` is an array with a single block: `[{ blockType: 'article', id: 'abc', author: '...', publishDate: '...' }]`
+
+**Postgres users:** Enable `blocksAsJSON: true` in your Postgres adapter configuration to store blocks as single JSON columns rather than creating separate tables. This significantly improves schema flexibility and reduces migration complexity.
 
 ## `fieldsOverride` Pattern
 
@@ -100,6 +107,8 @@ import { generateSchema } from '@kurto/payload-seo-advanced/utilities'
 const jsonLd = generateSchema(page, seoSettings)
 // Returns JSON-LD object or null if minimum required fields are missing
 ```
+
+Extracts the first block from `doc.meta.structuredData[]` array and routes to type-specific builders based on `blockType`. For `localBusiness` blocks with `useGlobalAddress: true`, falls back to `seoSettings.knowledgeGraph[0].address` (first knowledge graph block).
 
 Minimum requirements: Article needs title, Product needs price, Service needs title, Event needs startDate, Local Business needs title.
 

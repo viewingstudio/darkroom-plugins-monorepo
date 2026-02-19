@@ -9,22 +9,33 @@ describe('generateSchema', () => {
       expect(result).toBeNull()
     })
 
-    test('returns null when schemaType is "none"', () => {
+    test('returns null when structuredData is an empty array', () => {
       const doc = {
         title: 'Test Page',
         meta: {
-          structuredData: { schemaType: 'none' },
+          structuredData: [],
         },
       }
       const result = generateSchema(doc)
       expect(result).toBeNull()
     })
 
-    test('returns null when schemaType is missing', () => {
+    test('returns null when structuredData block has no blockType', () => {
       const doc = {
         title: 'Test Page',
         meta: {
-          structuredData: {},
+          structuredData: [{ id: 'abc' }],
+        },
+      }
+      const result = generateSchema(doc)
+      expect(result).toBeNull()
+    })
+
+    test('returns null when structuredData is not an array', () => {
+      const doc = {
+        title: 'Test Page',
+        meta: {
+          structuredData: { blockType: 'article' },
         },
       }
       const result = generateSchema(doc)
@@ -34,7 +45,7 @@ describe('generateSchema', () => {
     test('returns null when title is missing', () => {
       const doc = {
         meta: {
-          structuredData: { schemaType: 'article' },
+          structuredData: [{ blockType: 'article', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -44,18 +55,18 @@ describe('generateSchema', () => {
     test('returns null when both meta.title and title are missing', () => {
       const doc = {
         meta: {
-          structuredData: { schemaType: 'article' },
+          structuredData: [{ blockType: 'article', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
       expect(result).toBeNull()
     })
 
-    test('returns null for unknown schema type', () => {
+    test('returns null for unknown block type', () => {
       const doc = {
         title: 'Test Page',
         meta: {
-          structuredData: { schemaType: 'unknown' as any },
+          structuredData: [{ blockType: 'unknown' as any, id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -67,7 +78,7 @@ describe('generateSchema', () => {
         title: 'Doc Title',
         meta: {
           title: 'Meta Title',
-          structuredData: { schemaType: 'article' },
+          structuredData: [{ blockType: 'article', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -78,7 +89,7 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Doc Title',
         meta: {
-          structuredData: { schemaType: 'article' },
+          structuredData: [{ blockType: 'article', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -91,7 +102,7 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Article',
         meta: {
-          structuredData: { schemaType: 'article' },
+          structuredData: [{ blockType: 'article', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -109,13 +120,14 @@ describe('generateSchema', () => {
           title: 'Meta Title',
           description: 'Test description',
           image: { url: 'https://example.com/image.jpg' },
-          structuredData: {
-            schemaType: 'article',
-            article: {
+          structuredData: [
+            {
+              blockType: 'article',
+              id: 'abc',
               author: 'John Doe',
               publishDate: '2023-01-01',
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -137,10 +149,12 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Article',
         meta: {
-          structuredData: {
-            schemaType: 'article',
-            article: {},
-          },
+          structuredData: [
+            {
+              blockType: 'article',
+              id: 'abc',
+            },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -157,13 +171,14 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Product',
         meta: {
-          structuredData: {
-            schemaType: 'product',
-            product: {
+          structuredData: [
+            {
+              blockType: 'product',
+              id: 'abc',
               price: 29.99,
               inStock: true,
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -184,10 +199,12 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Product',
         meta: {
-          structuredData: {
-            schemaType: 'product',
-            product: {},
-          },
+          structuredData: [
+            {
+              blockType: 'product',
+              id: 'abc',
+            },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -198,14 +215,15 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Product',
         meta: {
-          structuredData: {
-            schemaType: 'product',
-            product: {
+          structuredData: [
+            {
+              blockType: 'product',
+              id: 'abc',
               price: 19.99,
               currency: 'EUR',
               inStock: false,
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -228,7 +246,7 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Service',
         meta: {
-          structuredData: { schemaType: 'service' },
+          structuredData: [{ blockType: 'service', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -243,14 +261,15 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Service',
         meta: {
-          structuredData: {
-            schemaType: 'service',
-            service: {
+          structuredData: [
+            {
+              blockType: 'service',
+              id: 'abc',
               serviceType: 'Consulting',
               provider: 'ACME Corp',
               areaServed: 'United States',
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -273,12 +292,13 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Event',
         meta: {
-          structuredData: {
-            schemaType: 'event',
-            event: {
+          structuredData: [
+            {
+              blockType: 'event',
+              id: 'abc',
               startDate: '2023-12-01T10:00:00Z',
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -294,10 +314,12 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Event',
         meta: {
-          structuredData: {
-            schemaType: 'event',
-            event: {},
-          },
+          structuredData: [
+            {
+              blockType: 'event',
+              id: 'abc',
+            },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -308,15 +330,16 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Event',
         meta: {
-          structuredData: {
-            schemaType: 'event',
-            event: {
+          structuredData: [
+            {
+              blockType: 'event',
+              id: 'abc',
               startDate: '2023-12-01T10:00:00Z',
               endDate: '2023-12-01T12:00:00Z',
               locationName: 'Conference Center',
               locationAddress: '123 Main St, City, State',
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -340,7 +363,7 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Business',
         meta: {
-          structuredData: { schemaType: 'localBusiness' },
+          structuredData: [{ blockType: 'localBusiness', id: 'abc' }],
         },
       }
       const result = generateSchema(doc)
@@ -355,9 +378,10 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Business',
         meta: {
-          structuredData: {
-            schemaType: 'localBusiness',
-            business: {
+          structuredData: [
+            {
+              blockType: 'localBusiness',
+              id: 'abc',
               businessType: 'Restaurant',
               priceRange: '$$',
               address: {
@@ -368,7 +392,7 @@ describe('generateSchema', () => {
                 country: 'US',
               },
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -392,24 +416,29 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Business',
         meta: {
-          structuredData: {
-            schemaType: 'localBusiness',
-            business: {
+          structuredData: [
+            {
+              blockType: 'localBusiness',
+              id: 'abc',
               useGlobalAddress: true,
             },
-          },
+          ],
         },
       }
       const globalSettings = {
-        knowledgeGraph: {
-          address: {
-            streetAddress: '456 Global St',
-            city: 'Global City',
-            state: 'NY',
-            postalCode: '67890',
-            country: 'US',
+        knowledgeGraph: [
+          {
+            blockType: 'organization',
+            id: 'xyz',
+            address: {
+              streetAddress: '456 Global St',
+              city: 'Global City',
+              state: 'NY',
+              postalCode: '67890',
+              country: 'US',
+            },
           },
-        },
+        ],
       }
       const result = generateSchema(doc, globalSettings)
       expect(result).toEqual({
@@ -431,9 +460,10 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Business',
         meta: {
-          structuredData: {
-            schemaType: 'localBusiness',
-            business: {
+          structuredData: [
+            {
+              blockType: 'localBusiness',
+              id: 'abc',
               useGlobalAddress: true,
               address: {
                 streetAddress: '123 Local St',
@@ -443,19 +473,23 @@ describe('generateSchema', () => {
                 country: 'US',
               },
             },
-          },
+          ],
         },
       }
       const globalSettings = {
-        knowledgeGraph: {
-          address: {
-            streetAddress: '456 Global St',
-            city: 'Global City',
-            state: 'NY',
-            postalCode: '67890',
-            country: 'US',
+        knowledgeGraph: [
+          {
+            blockType: 'organization',
+            id: 'xyz',
+            address: {
+              streetAddress: '456 Global St',
+              city: 'Global City',
+              state: 'NY',
+              postalCode: '67890',
+              country: 'US',
+            },
           },
-        },
+        ],
       }
       const result = generateSchema(doc, globalSettings)
       expect(result?.address?.streetAddress).toBe('456 Global St')
@@ -465,12 +499,13 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Business',
         meta: {
-          structuredData: {
-            schemaType: 'localBusiness',
-            business: {
+          structuredData: [
+            {
+              blockType: 'localBusiness',
+              id: 'abc',
               useGlobalAddress: true,
             },
-          },
+          ],
         },
       }
       const globalSettings = {}
@@ -489,13 +524,14 @@ describe('generateSchema', () => {
         title: 'Test Article',
         meta: {
           description: '',
-          structuredData: {
-            schemaType: 'article',
-            article: {
+          structuredData: [
+            {
+              blockType: 'article',
+              id: 'abc',
               author: undefined,
               publishDate: null,
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -510,13 +546,14 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Article',
         meta: {
-          structuredData: {
-            schemaType: 'article',
-            article: {
+          structuredData: [
+            {
+              blockType: 'article',
+              id: 'abc',
               author: 'John Doe',
               publishDate: undefined,
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)
@@ -535,13 +572,14 @@ describe('generateSchema', () => {
       const doc = {
         title: 'Test Product',
         meta: {
-          structuredData: {
-            schemaType: 'product',
-            product: {
+          structuredData: [
+            {
+              blockType: 'product',
+              id: 'abc',
               price: 0,
               inStock: false,
             },
-          },
+          ],
         },
       }
       const result = generateSchema(doc)

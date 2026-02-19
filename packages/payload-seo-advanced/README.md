@@ -82,20 +82,34 @@ payloadSeoAdvanced({
 
 **Fields created in the global:**
 
-| Field                          | Type                 | Description                                                                           |
-| ------------------------------ | -------------------- | ------------------------------------------------------------------------------------- |
-| `siteName`                     | text (localized)     | Appended to meta titles via the title separator                                       |
-| `titleSeparator`               | select               | Character between page title and site name (`-`, `\|`, `•`)                           |
-| `defaults.ogImage`             | upload               | Fallback OG image (requires `uploadsCollection`)                                      |
-| `defaults.fallbackDescription` | textarea (localized) | Fallback meta description                                                             |
-| `knowledgeGraph.type`          | select               | `organization` or `person`                                                            |
-| `knowledgeGraph.name`          | text (localized)     | Entity name                                                                           |
-| `knowledgeGraph.logo`          | upload               | Logo (shown when type is `organization`)                                              |
-| `knowledgeGraph.contactEmail`  | email                | Contact email                                                                         |
-| `knowledgeGraph.contactPhone`  | text                 | Contact phone                                                                         |
-| `knowledgeGraph.address`       | group                | Street address, city, state, postal code, country (shown when type is `organization`) |
-| `knowledgeGraph.socialLinks`   | array                | Platform + URL pairs                                                                  |
-| `indexing.noindex`             | checkbox             | Site-wide noindex toggle for staging environments                                     |
+| Field                          | Type                 | Description                                                 |
+| ------------------------------ | -------------------- | ----------------------------------------------------------- |
+| `siteName`                     | text (localized)     | Appended to meta titles via the title separator             |
+| `titleSeparator`               | select               | Character between page title and site name (`-`, `\|`, `•`) |
+| `defaults.ogImage`             | upload               | Fallback OG image (requires `uploadsCollection`)            |
+| `defaults.fallbackDescription` | textarea (localized) | Fallback meta description                                   |
+| `knowledgeGraph`               | blocks (maxRows: 1)  | Organization or Person block (see below)                    |
+| `indexing.noindex`             | checkbox             | Site-wide noindex toggle for staging environments           |
+
+**Knowledge Graph blocks:**
+
+The `knowledgeGraph` field is a blocks field with `maxRows: 1`, supporting two block types:
+
+**Organization block:**
+
+- `name` (text, localized)
+- `logo` (upload, requires `uploadsCollection`)
+- `contactEmail` (email)
+- `contactPhone` (text)
+- `address` (group: streetAddress, city, state, postalCode, country)
+- `socialLinks` (array of platform + URL pairs)
+
+**Person block:**
+
+- `name` (text, localized)
+- `contactEmail` (email)
+- `contactPhone` (text)
+- `socialLinks` (array of platform + URL pairs)
 
 When `globalSettings` is enabled, the auto-generate title endpoint automatically appends the site name from the global using the configured separator.
 
@@ -125,7 +139,7 @@ payloadSeoAdvanced({
 
 ### `structuredData`
 
-Adds a Schema.org structured data group with a schema type selector and conditional fields per type.
+Adds Schema.org structured data using a Payload `blocks` field with `maxRows: 1`. Each schema type is its own block with flat fields. With the Postgres adapter's `blocksAsJSON: true` option (user-configured), blocks store as JSON columns rather than proliferating database columns.
 
 Pass `true` for all schema types, or an object:
 
@@ -133,31 +147,44 @@ Pass `true` for all schema types, or an object:
 payloadSeoAdvanced({
   structuredData: {
     schemaTypes: ['article', 'product', 'localBusiness'],
-    authorCollection: 'users', // default: 'users'
     fieldsOverride: ({ defaultFields }) => defaultFields,
   },
 })
 ```
 
-| Option             | Type             | Default   | Description                                    |
-| ------------------ | ---------------- | --------- | ---------------------------------------------- |
-| `schemaTypes`      | `SchemaType[]`   | all types | Which schema types to include in the selector  |
-| `authorCollection` | `string`         | `'users'` | Collection for the Article author relationship |
-| `fieldsOverride`   | `FieldsOverride` | —         | Override the structured data fields            |
+| Option           | Type             | Default   | Description                               |
+| ---------------- | ---------------- | --------- | ----------------------------------------- |
+| `schemaTypes`    | `SchemaType[]`   | all types | Which schema types to include as blocks   |
+| `fieldsOverride` | `FieldsOverride` | —         | Override the structured data blocks field |
 
-**Available schema types:** `article`, `product`, `service`, `event`, `localBusiness`
+**Available block types:** `article`, `product`, `service`, `event`, `localBusiness`
 
-**Conditional fields per type:**
+**Fields per block type:**
 
-| Schema Type    | Fields                                                                                       |
+| Block Type     | Fields                                                                                       |
 | -------------- | -------------------------------------------------------------------------------------------- |
-| Article        | `author` (relationship), `publishDate` (date)                                                |
-| Product        | `price` (number), `currency` (text), `inStock` (checkbox)                                    |
-| Service        | `serviceType` (text), `provider` (text), `areaServed` (text)                                 |
-| Event          | `startDate` (date), `endDate` (date), `locationName` (text), `locationAddress` (text)        |
-| Local Business | `businessType` (text), `priceRange` (text), `useGlobalAddress` (checkbox), `address` (group) |
+| article        | `author` (text), `publishDate` (date)                                                        |
+| product        | `price` (number), `currency` (text), `inStock` (checkbox)                                    |
+| service        | `serviceType` (text), `provider` (text), `areaServed` (text)                                 |
+| event          | `startDate` (date), `endDate` (date), `locationName` (text), `locationAddress` (text)        |
+| localBusiness  | `businessType` (text), `priceRange` (text), `useGlobalAddress` (checkbox), `address` (group) |
 
-Local Business can pull its address from the SEO Settings global when `useGlobalAddress` is checked.
+**Data shape:** `meta.structuredData` is an array containing a single block:
+
+```ts
+meta.structuredData = [
+  {
+    blockType: 'article',
+    id: 'abc123',
+    author: 'John Doe',
+    publishDate: '2024-01-01',
+  },
+]
+```
+
+**Local Business address fallback:** When `useGlobalAddress` is checked, the address is pulled from the first knowledge graph block in SEO Settings (`seoSettings.knowledgeGraph[0].address`).
+
+**Postgres optimization:** Enable `blocksAsJSON: true` in your Postgres adapter configuration to store blocks as single JSON columns rather than creating separate tables. This significantly improves schema flexibility and reduces migration complexity when adding new Schema.org properties.
 
 ## `fieldsOverride` Pattern
 

@@ -11,7 +11,10 @@ export function generateSchema(
   globalSettings?: Record<string, any>,
 ): Record<string, any> | null {
   const sd = doc?.meta?.structuredData
-  if (!sd?.schemaType || sd.schemaType === 'none') {
+
+  // Extract the first block from the array
+  const block = Array.isArray(sd) ? sd[0] : null
+  if (!block?.blockType) {
     return null
   }
 
@@ -20,17 +23,17 @@ export function generateSchema(
     return null
   }
 
-  switch (sd.schemaType) {
+  switch (block.blockType) {
     case 'article':
-      return buildArticle(headline, sd.article, doc)
+      return buildArticle(headline, block, doc)
     case 'product':
-      return buildProduct(headline, sd.product)
+      return buildProduct(headline, block)
     case 'service':
-      return buildService(headline, sd.service)
+      return buildService(headline, block)
     case 'event':
-      return buildEvent(headline, sd.event)
+      return buildEvent(headline, block)
     case 'localBusiness':
-      return buildLocalBusiness(headline, sd.business, globalSettings)
+      return buildLocalBusiness(headline, block, globalSettings)
     default:
       return null
   }
@@ -131,10 +134,12 @@ function buildLocalBusiness(
   globalSettings?: Record<string, any>,
 ): Record<string, any> | null {
   // Resolve address: use global if `useGlobalAddress` is true
+  const globalKg = Array.isArray(globalSettings?.knowledgeGraph)
+    ? globalSettings.knowledgeGraph[0]
+    : null
+
   const addressSource =
-    fields?.useGlobalAddress && globalSettings?.knowledgeGraph?.address
-      ? globalSettings.knowledgeGraph.address
-      : fields?.address
+    fields?.useGlobalAddress && globalKg?.address ? globalKg.address : fields?.address
 
   return clean({
     '@context': 'https://schema.org',
