@@ -47,7 +47,7 @@
   "devDependencies": {
     "@playwright/test": "^1.52.0",
     "astro": "^5.17.0",
-    "typescript": "5.7.3"
+    "typescript": "catalog:"
   },
   "publishConfig": {
     "access": "public",

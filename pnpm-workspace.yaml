@@ -2,3 +2,23 @@ packages:
   - 'packages/*'
   - 'packages/astro-seo-advanced/tests/fixtures'
   - 'dev'
+
+# Shared dev-dependency versions. Reference with "catalog:" in package.json.
+# Note: peerDependencies are deliberately NOT cataloged — they express the
+# broad compatibility floor for published plugins, not the pinned dev version.
+catalog:
+  '@payloadcms/translations': 3.86.0
+  '@payloadcms/ui': 3.86.0
+  '@swc/cli': 0.6.0
+  '@types/react': ^19.0.0
+  '@types/react-dom': ^19.0.0
+  'copyfiles': 2.4.1
+  'payload': 3.86.0
+  'react': ^19.0.0
+  'react-dom': ^19.0.0
+  'rimraf': 3.0.2
+  'typescript': 5.7.3
+allowBuilds:
+  '@swc/core': set this to true or false
+  esbuild: set this to true or false
+  sharp: set this to true or false
