@@ -1,6 +1,6 @@
 {
   "name": "@kurto/astro-seo-advanced",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Astro components for rendering SEO head markup from @kurto/payload-seo-advanced data",
   "keywords": [
     "astro",
