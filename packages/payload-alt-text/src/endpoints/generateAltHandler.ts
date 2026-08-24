@@ -3,7 +3,7 @@ import type { PayloadHandler } from 'payload'
 import type { ResolvedAltTextOptions } from '../types.js'
 
 import { AltTextError } from '../types.js'
-import { generateAltText } from '../providers/gemini.js'
+import { getProvider, getProviderCapabilities, resolveApiKey } from '../providers/index.js'
 import { buildPrompt } from '../utilities/buildPrompt.js'
 import { resolveImageBytes } from '../utilities/resolveImageBytes.js'
 import { resolveSettings } from '../utilities/resolveSettings.js'
@@ -43,11 +43,14 @@ export const createGenerateAltHandler =
       return Response.json({ error: 'collectionSlug and id are required' }, { status: 400 })
     }
 
-    const apiKey = options.apiKey || process.env.GEMINI_API_KEY
+    const capabilities = getProviderCapabilities(options.provider)
+    const apiKey = resolveApiKey(options)
 
     if (!apiKey) {
       return Response.json(
-        { error: 'No Gemini API key configured. Set GEMINI_API_KEY.' },
+        {
+          error: `No ${capabilities.label} API key configured. Set ${capabilities.apiKeyEnvVar}.`,
+        },
         { status: 500 },
       )
     }
@@ -67,6 +70,7 @@ export const createGenerateAltHandler =
 
       const { base64, mimeType } = await resolveImageBytes({
         doc: doc as Record<string, unknown>,
+        provider: options.provider,
         serverURL: req.payload.config.serverURL,
         sizeName: options.sizeName,
         timeoutMs: options.timeoutMs,
@@ -75,7 +79,7 @@ export const createGenerateAltHandler =
       const settings = await resolveSettings({ options, req })
       const prompt = options.prompt ?? buildPrompt(settings, { maxLength: options.maxLength })
 
-      const raw = await generateAltText({
+      const raw = await getProvider(options.provider)({
         apiKey,
         base64,
         maxLength: options.maxLength,

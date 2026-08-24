@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ResolvedAltTextOptions } from '../../../src/types.js'
 
+import { generateAltText as generateAltTextAnthropic } from '../../../src/providers/anthropic.js'
 import { generateAltText } from '../../../src/providers/gemini.js'
 import { AltTextError } from '../../../src/types.js'
 import { buildPrompt } from '../../../src/utilities/buildPrompt.js'
@@ -30,6 +31,10 @@ vi.mock('../../../src/providers/gemini.js', () => ({
   generateAltText: vi.fn(),
 }))
 
+vi.mock('../../../src/providers/anthropic.js', () => ({
+  generateAltText: vi.fn(),
+}))
+
 const baseOptions: ResolvedAltTextOptions = {
   altFieldName: 'alt',
   apiKey: 'test-key',
@@ -37,7 +42,14 @@ const baseOptions: ResolvedAltTextOptions = {
   maxLength: 125,
   model: 'gemini-3.1-flash-lite',
   onError: 'filename',
+  provider: 'gemini',
   timeoutMs: 15000,
+}
+
+const anthropicOptions: ResolvedAltTextOptions = {
+  ...baseOptions,
+  model: 'claude-haiku-4-5-20251001',
+  provider: 'anthropic',
 }
 
 const makeReq = (overrides: Record<string, unknown> = {}) =>
@@ -59,6 +71,7 @@ describe('generateAltTextHook', () => {
     vi.mocked(resolveSettings).mockResolvedValue({})
     vi.mocked(buildPrompt).mockReturnValue('the prompt')
     vi.mocked(generateAltText).mockResolvedValue('raw alt text')
+    vi.mocked(generateAltTextAnthropic).mockResolvedValue('raw alt text')
     vi.mocked(sanitizeAltText).mockReturnValue('Sanitized alt text')
     vi.mocked(humanizeFilename).mockReturnValue('My photo')
   })
@@ -80,6 +93,97 @@ describe('generateAltTextHook', () => {
       model: 'gemini-3.1-flash-lite',
       prompt: 'the prompt',
       timeoutMs: 15000,
+    })
+  })
+
+  describe('provider routing', () => {
+    it('calls Anthropic and not Gemini when provider is anthropic', async () => {
+      const hook = generateAltTextHook(anthropicOptions)
+      const req = makeReq()
+      const data = { filename: 'my-photo.jpg' }
+
+      const result: any = await hook({ data, req } as any)
+
+      expect(result.alt).toBe('Sanitized alt text')
+      expect(generateAltText).not.toHaveBeenCalled()
+      expect(generateAltTextAnthropic).toHaveBeenCalledWith({
+        apiKey: 'test-key',
+        base64: Buffer.from('x').toString('base64'),
+        maxLength: 125,
+        mimeType: 'image/jpeg',
+        model: 'claude-haiku-4-5-20251001',
+        prompt: 'the prompt',
+        timeoutMs: 15000,
+      })
+    })
+
+    it('reads ANTHROPIC_API_KEY rather than GEMINI_API_KEY', async () => {
+      delete process.env.GEMINI_API_KEY
+      process.env.ANTHROPIC_API_KEY = 'ant-env-key'
+
+      const hook = generateAltTextHook({ ...anthropicOptions, apiKey: undefined })
+      const req = makeReq()
+
+      await hook({ data: { filename: 'my-photo.jpg' }, req } as any)
+
+      expect(generateAltTextAnthropic).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'ant-env-key' }),
+      )
+
+      delete process.env.ANTHROPIC_API_KEY
+    })
+
+    it('skips HEIC for anthropic but generates for gemini', async () => {
+      const req = makeReq({
+        file: { data: Buffer.from('x'), name: 'f.heic', mimetype: 'image/heic' },
+      })
+
+      const skipped: any = await generateAltTextHook(anthropicOptions)({
+        data: {},
+        req,
+      } as any)
+      expect(generateAltTextAnthropic).not.toHaveBeenCalled()
+      expect(skipped.alt).toBeUndefined()
+
+      const generated: any = await generateAltTextHook(baseOptions)({
+        data: { filename: 'f.heic' },
+        req,
+      } as any)
+      expect(generated.alt).toBe('Sanitized alt text')
+    })
+
+    it('takes the onError path when the file exceeds the provider size cap', async () => {
+      const hook = generateAltTextHook(anthropicOptions)
+      const req = makeReq({
+        file: {
+          data: Buffer.from('x'),
+          mimetype: 'image/jpeg',
+          name: 'huge.jpg',
+          size: 5 * 1024 * 1024,
+        },
+      })
+
+      const result: any = await hook({ data: { filename: 'huge.jpg' }, req } as any)
+
+      expect(generateAltTextAnthropic).not.toHaveBeenCalled()
+      expect(result.alt).toBe('My photo')
+    })
+
+    it('generates when the file is under the provider size cap', async () => {
+      const hook = generateAltTextHook(anthropicOptions)
+      const req = makeReq({
+        file: {
+          data: Buffer.from('x'),
+          mimetype: 'image/jpeg',
+          name: 'small.jpg',
+          size: 1024,
+        },
+      })
+
+      const result: any = await hook({ data: { filename: 'small.jpg' }, req } as any)
+
+      expect(generateAltTextAnthropic).toHaveBeenCalledTimes(1)
+      expect(result.alt).toBe('Sanitized alt text')
     })
   })
 

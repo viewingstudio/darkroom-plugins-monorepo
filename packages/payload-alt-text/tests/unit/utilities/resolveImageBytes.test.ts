@@ -304,3 +304,61 @@ describe('resolveImageBytes', () => {
     await expect(resolveImageBytes({ doc })).rejects.toMatchObject({ code: 'timeout' })
   })
 })
+
+describe('resolveImageBytes — provider-scoped limits', () => {
+  const heicResponse = () =>
+    mockResponse({
+      headers: { 'content-type': 'image/heic' },
+      arrayBuffer: new Uint8Array([1, 2, 3]).buffer,
+    })
+
+  test('gemini accepts HEIC', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(heicResponse()))
+
+    const doc = { url: 'https://cdn.example.com/image.heic', mimeType: 'image/heic' }
+    const result = await resolveImageBytes({ doc, provider: 'gemini' })
+
+    expect(result.mimeType).toBe('image/heic')
+  })
+
+  test('anthropic rejects HEIC as bad_request', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(heicResponse()))
+
+    const doc = { url: 'https://cdn.example.com/image.heic', mimeType: 'image/heic' }
+
+    await expect(resolveImageBytes({ doc, provider: 'anthropic' })).rejects.toMatchObject({
+      code: 'bad_request',
+    })
+  })
+
+  test('anthropic rejects a 4MB image that gemini accepts', async () => {
+    const fourMB = 4 * 1024 * 1024
+    const makeFetch = () =>
+      vi.fn().mockResolvedValue(
+        mockResponse({
+          headers: { 'content-type': 'image/jpeg', 'content-length': String(fourMB) },
+          arrayBuffer: new Uint8Array(8).buffer,
+        }),
+      )
+
+    const doc = { url: 'https://cdn.example.com/image.jpg', mimeType: 'image/jpeg' }
+
+    vi.stubGlobal('fetch', makeFetch())
+    await expect(resolveImageBytes({ doc, provider: 'anthropic' })).rejects.toMatchObject({
+      code: 'bad_request',
+    })
+
+    vi.stubGlobal('fetch', makeFetch())
+    await expect(resolveImageBytes({ doc, provider: 'gemini' })).resolves.toMatchObject({
+      mimeType: 'image/jpeg',
+    })
+  })
+
+  test('an omitted provider keeps the previous gemini behaviour', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(heicResponse()))
+
+    const doc = { url: 'https://cdn.example.com/image.heic', mimeType: 'image/heic' }
+
+    await expect(resolveImageBytes({ doc })).resolves.toMatchObject({ mimeType: 'image/heic' })
+  })
+})

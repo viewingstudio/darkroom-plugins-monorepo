@@ -1,6 +1,7 @@
-import { DEFAULT_TIMEOUT_MS, MAX_IMAGE_BYTES, SUPPORTED_MIME_TYPES } from '../defaults.js'
+import { DEFAULT_TIMEOUT_MS } from '../defaults.js'
+import { getProviderCapabilities } from '../providers/index.js'
 import { AltTextError } from '../types.js'
-import type { ResolvedImage } from '../types.js'
+import type { AltTextProvider, ResolvedImage } from '../types.js'
 
 type ImageSource = {
   filename?: string
@@ -10,6 +11,8 @@ type ImageSource = {
 
 type ResolveImageBytesArgs = {
   doc: Record<string, any>
+  /** Decides which mime types and size cap the fetched image is checked against. */
+  provider?: AltTextProvider
   serverURL?: string
   sizeName?: string
   timeoutMs?: number
@@ -79,10 +82,12 @@ function normalizeMimeType(contentType: string | null | undefined): string | und
 
 export async function resolveImageBytes({
   doc,
+  provider,
   serverURL,
   sizeName,
   timeoutMs = DEFAULT_TIMEOUT_MS,
 }: ResolveImageBytesArgs): Promise<ResolvedImage> {
+  const { maxImageBytes, supportedMimeTypes } = getProviderCapabilities(provider)
   const source = pickImageSource(doc, sizeName)
 
   if (!source?.url) {
@@ -120,20 +125,20 @@ export async function resolveImageBytes({
 
   const mimeType = normalizeMimeType(response.headers.get('content-type')) ?? source.mimeType
 
-  if (!mimeType || !SUPPORTED_MIME_TYPES.includes(mimeType)) {
+  if (!mimeType || !supportedMimeTypes.includes(mimeType)) {
     throw new AltTextError('bad_request', `Unsupported image mime type: ${mimeType ?? 'unknown'}`)
   }
 
   const contentLength = response.headers.get('content-length')
-  if (contentLength && Number(contentLength) > MAX_IMAGE_BYTES) {
-    throw new AltTextError('bad_request', `Image exceeds the ${MAX_IMAGE_BYTES} byte limit`)
+  if (contentLength && Number(contentLength) > maxImageBytes) {
+    throw new AltTextError('bad_request', `Image exceeds the ${maxImageBytes} byte limit`)
   }
 
   const arrayBuffer = await response.arrayBuffer()
   const bytes = Buffer.from(arrayBuffer)
 
-  if (bytes.byteLength > MAX_IMAGE_BYTES) {
-    throw new AltTextError('bad_request', `Image exceeds the ${MAX_IMAGE_BYTES} byte limit`)
+  if (bytes.byteLength > maxImageBytes) {
+    throw new AltTextError('bad_request', `Image exceeds the ${maxImageBytes} byte limit`)
   }
 
   const base64 = bytes.toString('base64')

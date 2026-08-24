@@ -2,9 +2,8 @@ import type { CollectionBeforeValidateHook, PayloadRequest } from 'payload'
 
 import type { ResolvedAltTextOptions } from '../types.js'
 
-import { SUPPORTED_MIME_TYPES } from '../defaults.js'
 import { AltTextError } from '../types.js'
-import { generateAltText } from '../providers/gemini.js'
+import { getProvider, getProviderCapabilities, resolveApiKey } from '../providers/index.js'
 import { buildPrompt } from '../utilities/buildPrompt.js'
 import { humanizeFilename } from '../utilities/humanizeFilename.js'
 import { resolveSettings } from '../utilities/resolveSettings.js'
@@ -45,22 +44,31 @@ export const generateAltTextHook =
       return data
     }
 
-    if (!SUPPORTED_MIME_TYPES.includes(file.mimetype)) {
+    const capabilities = getProviderCapabilities(options.provider)
+
+    if (!capabilities.supportedMimeTypes.includes(file.mimetype)) {
       return data
     }
 
     try {
-      const apiKey = options.apiKey || process.env.GEMINI_API_KEY
+      const apiKey = resolveApiKey(options)
 
       if (!apiKey) {
-        throw new AltTextError('invalid_key', 'Gemini API key is missing')
+        throw new AltTextError('invalid_key', `${capabilities.label} API key is missing`)
+      }
+
+      if (file.size && file.size > capabilities.maxImageBytes) {
+        throw new AltTextError(
+          'bad_request',
+          `Image is ${file.size} bytes, over the ${capabilities.maxImageBytes} byte limit for ${capabilities.label}`,
+        )
       }
 
       const settings = await resolveSettings({ options, req })
       const prompt = buildPrompt(settings, { maxLength: options.maxLength })
       const base64 = toBase64(file.data)
 
-      const raw = await generateAltText({
+      const raw = await getProvider(options.provider)({
         apiKey,
         base64,
         maxLength: options.maxLength,

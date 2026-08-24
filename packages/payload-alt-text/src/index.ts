@@ -11,16 +11,18 @@ import {
   DEFAULT_ALT_FIELD_NAME,
   DEFAULT_COLLECTIONS,
   DEFAULT_MAX_LENGTH,
-  DEFAULT_MODEL,
+  DEFAULT_MODELS,
   DEFAULT_SETTINGS_SLUG,
   DEFAULT_TIMEOUT_MS,
 } from './defaults.js'
+import { resolveProviderName } from './providers/index.js'
 import { createGenerateAltHandler } from './endpoints/generateAltHandler.js'
 import { altTextField } from './fields/altTextField.js'
 import { createAltTextSettingsGlobal } from './globals/AltTextSettings.js'
 import { generateAltTextHook } from './hooks/generateAltText.js'
 
 export type {
+  AltTextProvider,
   AltTextSettings,
   AltTextSettingsConfig,
   OnErrorStrategy,
@@ -47,6 +49,8 @@ export const payloadAltText =
     const altFieldName = pluginOptions.altFieldName ?? DEFAULT_ALT_FIELD_NAME
     const showGenerateButton = pluginOptions.showGenerateButton ?? true
 
+    const provider = resolveProviderName(pluginOptions)
+
     const options: ResolvedAltTextOptions = {
       altFieldName,
       apiKey: pluginOptions.apiKey,
@@ -55,9 +59,10 @@ export const payloadAltText =
       businessContext: pluginOptions.businessContext,
       location: pluginOptions.location,
       maxLength: pluginOptions.maxLength ?? DEFAULT_MAX_LENGTH,
-      model: pluginOptions.model ?? DEFAULT_MODEL,
+      model: pluginOptions.model ?? DEFAULT_MODELS[provider],
       onError: pluginOptions.onError ?? 'filename',
       prompt: pluginOptions.prompt,
+      provider,
       settingsSlug,
       sizeName: pluginOptions.sizeName,
       timeoutMs: pluginOptions.timeoutMs ?? DEFAULT_TIMEOUT_MS,

@@ -1,10 +1,10 @@
 # @kurto/payload-alt-text
 
-> AI-generated alt text for Payload CMS uploads, powered by Gemini: a `beforeValidate` hook fills empty alt fields on upload, and a manual Generate button lets editors regenerate and review before saving.
+> AI-generated alt text for Payload CMS uploads, powered by Gemini or Claude: a `beforeValidate` hook fills empty alt fields on upload, and a manual Generate button lets editors regenerate and review before saving.
 
 - Peer dependencies: `@payloadcms/ui`, `payload` (`^3.74.0`), `react` and `react-dom` (`^18.0.0 || ^19.0.0`)
 - Install: `pnpm add @kurto/payload-alt-text`
-- Requires `GEMINI_API_KEY` in the environment (or an `apiKey` option). It is deliberately not a settings-global field: a database-stored billable secret would land in DB backups and be readable over the Payload REST API by any authenticated admin.
+- Requires the resolved provider's key in the environment — `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` — or an explicit `apiKey` option. Only the resolved provider's env var is ever read. It is deliberately not a settings-global field: a database-stored billable secret would land in DB backups and be readable over the Payload REST API by any authenticated admin.
 
 ## Plugin Config (`PayloadAltTextConfig`)
 
@@ -13,7 +13,7 @@ import { payloadAltText } from '@kurto/payload-alt-text'
 
 payloadAltText({
   altFieldName: 'alt',              // string — field on the collection to populate. Default: 'alt'
-  apiKey: undefined,                 // string — Gemini API key, falls back to process.env.GEMINI_API_KEY. Default: undefined
+  apiKey: undefined,                 // string — provider API key, falls back to process.env.GEMINI_API_KEY or process.env.ANTHROPIC_API_KEY. Default: undefined
   autoGenerate: true,                // boolean — generate on upload via beforeValidate hook. Default: true
   avoidTerms: undefined,             // string[] — terms the model must never use; fallback for the global's avoidTerms. Default: undefined
   businessContext: undefined,        // string — what the business does; fallback for the global's businessDescription. Default: undefined
@@ -22,9 +22,10 @@ payloadAltText({
   globalSettings: false,             // AltTextSettingsConfig | boolean — adds the admin-editable settings global. Default: false
   location: undefined,               // string — business location, e.g. 'London, UK'; fallback for the global's location. Default: undefined
   maxLength: 125,                    // number — max characters of generated alt text. Default: 125
-  model: 'gemini-3.1-flash-lite',    // string — Gemini model id. Default: 'gemini-3.1-flash-lite'
+  model: 'gemini-3.1-flash-lite',    // string — model id. Default: the resolved provider's cheap vision tier ('gemini-3.1-flash-lite' | 'claude-haiku-4-5-20251001')
   onError: 'filename',               // 'empty' | 'filename' | 'throw' — fallback strategy when generation fails. Default: 'filename'
   prompt: undefined,                 // string — replaces the whole prompt, ignoring the settings global entirely. Default: undefined
+  provider: 'gemini',                // 'anthropic' | 'gemini' — vision API to use. Default: inferred from model ('claude-*' means anthropic), else 'gemini'
   showGenerateButton: true,          // boolean — show the manual Generate button on the field. Default: true
   sizeName: undefined,               // string — prefer this generated image size when resolving bytes. Default: undefined (smallest available)
   tone: undefined,                   // string — house style instruction; fallback for the global's tone. Default: undefined
@@ -45,14 +46,28 @@ payloadAltText({
 
 ## What the Plugin Creates
 
-- **`beforeValidate` hook** (`generateAltTextHook`) on every enabled collection — reads `req.file.data` while the upload is still in memory, skips if the target field already has a value, and writes a sanitized Gemini description into `altFieldName`. On failure, falls back per `onError` (default: a humanized filename) rather than blocking a `required` field's validation.
+- **`beforeValidate` hook** (`generateAltTextHook`) on every enabled collection — reads `req.file.data` while the upload is still in memory, skips if the target field already has a value, and writes a sanitized provider description into `altFieldName`. On failure, falls back per `onError` (default: a humanized filename) rather than blocking a `required` field's validation.
 - **`alt-text-settings` global** (only when `globalSettings` is truthy) — the admin-UI home for prompt context: four optional fields, `businessDescription` (textarea, localized), `location` (text, localized), `tone` (textarea), `avoidTerms` (text, `hasMany`), all folded into the prompt and none echoed verbatim into the output. Editable by an admin without a redeploy; read once per generation with no caching, so edits apply to the next upload. Values here win over the equivalent plugin options (`businessContext`, `location`, `tone`, `avoidTerms`), which are code-level fallbacks used when the global is absent, unreadable, or the field is blank.
 - **`POST /api/plugin-alt-text/generate` endpoint** — backs the manual Generate button. Requires an authenticated user. Fetches the stored image back by URL (no `req.file` available here), generates, sanitizes, and returns `{ result }` without writing to the document, so the editor reviews before saving.
 - **Field component** (`AltTextGenerateField`, from `@kurto/payload-alt-text/client`) — wraps whatever field is at `altFieldName`, preserving its type, `required`, `localized`, label, and `admin` config if it already exists; adds a new `text` field with that name if it doesn't.
 
+## Providers
+
+Both providers go through the same prompt, sanitizer, settings global, Generate button and `onError` strategy — the only differences are the endpoint, the key, and what each will accept:
+
+| | `'gemini'` (default) | `'anthropic'` |
+| --- | --- | --- |
+| Default model | `gemini-3.1-flash-lite` | `claude-haiku-4-5-20251001` |
+| Env var | `GEMINI_API_KEY` | `ANTHROPIC_API_KEY` |
+| Mime types | JPEG, PNG, WebP, GIF, HEIC, HEIF | JPEG, PNG, WebP, GIF |
+| Max image | 14MB | 3.75MB (Anthropic's 5MB cap is post-base64) |
+| Rough cost per image | ~$0.00016 | ~$0.0003 |
+
+Provider resolution: an explicit `provider` wins; otherwise a `model` starting with `claude` resolves to `'anthropic'` and one starting with `gemini` to `'gemini'`; with neither set it is `'gemini'`, so an upgrade never changes which API an existing install bills. Mime types and the size cap are checked before any request is sent — on upload an unsupported type is a silent skip and an oversized file takes the `onError` path, while the Generate endpoint returns a `400` for both.
+
 ## Output Formatting (`sanitizeAltText`)
 
-Every generated value, on both the hook and endpoint paths, is normalized: whitespace collapsed, wrapping quotes and "image of…"/"alt text:" preamble stripped, truncated to `maxLength` on a word boundary (no ellipsis, no dangling punctuation), first letter capitalized, and **always terminated with a full stop**. An existing `.`, `!`, `?` or `…` is kept as the terminator; anything else gets a `.` appended. `maxLength` bounds the final string including that stop, so the truncation budget shrinks by one character when a stop must be added. The prompt also asks Gemini to end with a full stop, so the sanitizer is a guarantee rather than the primary mechanism.
+Every generated value, on both the hook and endpoint paths, is normalized: whitespace collapsed, wrapping quotes and "image of…"/"alt text:" preamble stripped, truncated to `maxLength` on a word boundary (no ellipsis, no dangling punctuation), first letter capitalized, and **always terminated with a full stop**. An existing `.`, `!`, `?` or `…` is kept as the terminator; anything else gets a `.` appended. `maxLength` bounds the final string including that stop, so the truncation budget shrinks by one character when a stop must be added. The prompt also asks the model to end with a full stop, so the sanitizer is a guarantee rather than the primary mechanism.
 
 ## Example
 
@@ -71,7 +86,7 @@ The prompt built by `buildPrompt` never instructs the model to insert keywords o
 
 ## Exported Types
 
-From `@kurto/payload-alt-text` and `@kurto/payload-alt-text/types`: `PayloadAltTextConfig`, `AltTextSettingsConfig`, `AltTextSettings`, `OnErrorStrategy`, `FieldsOverride`, `ResolvedAltTextOptions`, `ResolvedImage`, `GenerateAltTextArgs`, `AltTextErrorCode`, and the `AltTextError` class (thrown by the Gemini provider with a `code` and optional `status`).
+From `@kurto/payload-alt-text` and `@kurto/payload-alt-text/types`: `PayloadAltTextConfig`, `AltTextSettingsConfig`, `AltTextSettings`, `OnErrorStrategy`, `FieldsOverride`, `ResolvedAltTextOptions`, `ResolvedImage`, `GenerateAltTextArgs`, `AltTextErrorCode`, `AltTextProvider`, `ProviderCapabilities`, `GenerateAltTextFn`, and the `AltTextError` class (thrown by either provider with a `code` and optional `status`).
 
 ## Docs
 

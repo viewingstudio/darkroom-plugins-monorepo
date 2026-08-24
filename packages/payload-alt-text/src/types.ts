@@ -11,6 +11,9 @@ export type FieldsOverride = (args: { defaultFields: Field[] }) => Field[]
  */
 export type OnErrorStrategy = 'empty' | 'filename' | 'throw'
 
+/** Vision API used to generate the description. */
+export type AltTextProvider = 'anthropic' | 'gemini'
+
 export type AltTextSettingsConfig = {
   access?: GlobalConfig['access']
   /** Admin nav group. Defaults to an existing 'Settings' group when one exists. */
@@ -23,7 +26,10 @@ export type AltTextSettingsConfig = {
 export type PayloadAltTextConfig = {
   /** Field on the collection to populate. Default: 'alt' */
   altFieldName?: string
-  /** Gemini API key. Falls back to `process.env.GEMINI_API_KEY`. */
+  /**
+   * Provider API key. Falls back to `process.env.ANTHROPIC_API_KEY` or `process.env.GEMINI_API_KEY`,
+   * whichever matches the resolved provider.
+   */
   apiKey?: string
   /** Generate automatically when a new file is uploaded. Default: true */
   autoGenerate?: boolean
@@ -41,12 +47,20 @@ export type PayloadAltTextConfig = {
   location?: string
   /** Max characters of generated alt text. Default: 125 */
   maxLength?: number
-  /** Gemini model id. Default: 'gemini-3.1-flash-lite' */
+  /**
+   * Model id for the resolved provider. Defaults to that provider's cheap vision tier:
+   * 'gemini-3.1-flash-lite' or 'claude-haiku-4-5-20251001'.
+   */
   model?: string
   /** Default: 'filename' */
   onError?: OnErrorStrategy
   /** Replace the whole prompt, ignoring the settings global entirely. */
   prompt?: string
+  /**
+   * Vision API to use. Default: inferred from `model` (a `claude-*` id means `'anthropic'`),
+   * and `'gemini'` when neither is set.
+   */
+  provider?: AltTextProvider
   /** Show the manual Generate button on the field. Default: true */
   showGenerateButton?: boolean
   /** Prefer this generated size when resolving bytes. Default: smallest available. */
@@ -80,13 +94,14 @@ export type ResolvedAltTextOptions = {
   model: string
   onError: OnErrorStrategy
   prompt?: string
+  provider: AltTextProvider
   settingsSlug?: string
   sizeName?: string
   timeoutMs: number
   tone?: string
 }
 
-/** Image bytes ready to inline into a Gemini request. */
+/** Image bytes ready to inline into a provider request. */
 export type ResolvedImage = {
   base64: string
   mimeType: string
@@ -100,6 +115,21 @@ export type GenerateAltTextArgs = {
   model: string
   prompt: string
   timeoutMs: number
+}
+
+/** The one function every provider module implements. */
+export type GenerateAltTextFn = (args: GenerateAltTextArgs) => Promise<string>
+
+/** What a provider will accept in a request, used to gate images before one is sent. */
+export type ProviderCapabilities = {
+  /** Env var consulted when no `apiKey` option is set. */
+  apiKeyEnvVar: string
+  /** Human-readable provider name, used in error messages. */
+  label: string
+  /** Largest raw image the provider accepts, in bytes, before base64 expansion. */
+  maxImageBytes: number
+  /** Mime types the provider's vision endpoint accepts. */
+  supportedMimeTypes: string[]
 }
 
 export type AltTextErrorCode =
