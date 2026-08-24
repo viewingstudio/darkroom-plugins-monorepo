@@ -1,6 +1,6 @@
 {
   "name": "@kurto/payload-alt-text",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI-generated alt text for Payload CMS uploads, powered by Gemini",
   "keywords": [
     "payload",
