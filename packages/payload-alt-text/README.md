@@ -126,7 +126,7 @@ Values on the global take precedence over the equivalent plugin option (`busines
 
 There are two paths to a generated description, and **neither runs inside a Payload write.** That constraint is the single most important thing to know before changing this plugin — see [Why generation never runs in a hook](#why-generation-never-runs-in-a-hook).
 
-1. **Before save, automatically.** When the editor picks a file in the admin, the field component takes the pending `File` from `useUploadControls`, downscales it in the browser to a 768px JPEG, and POSTs the bytes to `POST /api/plugin-alt-text/generate-from-bytes`. The generated text lands in the field before the upload request is ever sent, so the document is created with the alt field already populated. This fires once per selected file, and never when the field already has a value. Requires `autoGenerate` (default `true`).
+1. **Before save, automatically.** When the editor picks a file in the admin, the field component takes the pending `File` from form state (path `file`, where Payload's Upload element puts it), downscales it in the browser to a 768px JPEG, and POSTs the bytes to `POST /api/plugin-alt-text/generate-from-bytes`. The generated text lands in the field before the upload request is ever sent, so the document is created with the alt field already populated. This fires once per selected file, and never when the field already has a value. Requires `autoGenerate` (default `true`).
 
    The in-browser downscale is not only an optimization: an original upload can be many megabytes and base64 inflates it by a third, which would exceed the 4.5MB request-body limit on hosts like Vercel. A 768px JPEG is typically 50–150KB, and costs fewer input tokens.
 
