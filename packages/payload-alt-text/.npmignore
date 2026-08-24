@@ -1,0 +1,42 @@
+# Source files
+src/
+
+# Development files
+*.tsbuildinfo
+tsconfig.json
+
+# Tests
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+__mocks__/
+
+# Development dependencies
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Documentation (optional - remove if you want to include)
+*.md
+!README.md
+
+# Build artifacts that shouldn't be published
+coverage/
+.nyc_output/

@@ -7,8 +7,9 @@
     "clean": "pnpm -r clean",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "publish": "pnpm -r --filter './packages/*' build && pnpm publish:payload-access && pnpm publish:payload-deploy-trigger",
+    "publish": "pnpm -r --filter './packages/*' build && pnpm publish:payload-access && pnpm publish:payload-deploy-trigger && pnpm publish:payload-alt-text",
     "publish:payload-access": "cd packages/payload-access && npm publish --access public",
+    "publish:payload-alt-text": "cd packages/payload-alt-text && npm publish --access public",
     "publish:payload-deploy-trigger": "cd packages/payload-deploy-trigger && npm publish --access public"
   },
   "devDependencies": {

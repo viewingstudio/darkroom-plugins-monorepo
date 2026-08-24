@@ -12,6 +12,7 @@
 - [@kurto/astro-seo-advanced](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/astro-seo-advanced/llms.txt): Astro components for rendering SEO head markup from payload-seo-advanced data — meta tags, Open Graph, Twitter Cards, JSON-LD
 - [@kurto/payload-access](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-access/llms.txt): Role-Based Access Control (RBAC) plugin for Payload CMS — 3-tier system (Developer > Admin > Editor) with helper functions
 - [@kurto/payload-deploy-trigger](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-deploy-trigger/llms.txt): Deployment trigger plugin for Payload CMS — one-click deploys via webhooks with dashboard widget and audit log
+- [@kurto/payload-alt-text](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-alt-text/llms.txt): AI-generated alt text for Payload uploads via Gemini — automatic on upload, manual regenerate button, business-context settings global
 
 ## Docs
 
@@ -19,6 +20,7 @@
 - [@kurto/astro-seo-advanced README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/astro-seo-advanced/README.md): Full Astro SEO components documentation
 - [@kurto/payload-access README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-access/README.md): Full RBAC plugin documentation
 - [@kurto/payload-deploy-trigger README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-deploy-trigger/README.md): Full deploy trigger documentation
+- [@kurto/payload-alt-text README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-alt-text/README.md): Full AI alt text plugin documentation
 
 ## Optional
 

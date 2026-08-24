@@ -1,0 +1,75 @@
+# @kurto/payload-alt-text
+
+> AI-generated alt text for Payload CMS uploads, powered by Gemini: a `beforeValidate` hook fills empty alt fields on upload, and a manual Generate button lets editors regenerate and review before saving.
+
+- Peer dependencies: `@payloadcms/ui`, `payload` (`^3.74.0`), `react` and `react-dom` (`^18.0.0 || ^19.0.0`)
+- Install: `pnpm add @kurto/payload-alt-text`
+- Requires `GEMINI_API_KEY` in the environment (or an `apiKey` option). It is deliberately not a settings-global field: a database-stored billable secret would land in DB backups and be readable over the Payload REST API by any authenticated admin.
+
+## Plugin Config (`PayloadAltTextConfig`)
+
+```ts
+import { payloadAltText } from '@kurto/payload-alt-text'
+
+payloadAltText({
+  altFieldName: 'alt',              // string — field on the collection to populate. Default: 'alt'
+  apiKey: undefined,                 // string — Gemini API key, falls back to process.env.GEMINI_API_KEY. Default: undefined
+  autoGenerate: true,                // boolean — generate on upload via beforeValidate hook. Default: true
+  avoidTerms: undefined,             // string[] — terms the model must never use; fallback for the global's avoidTerms. Default: undefined
+  businessContext: undefined,        // string — what the business does; fallback for the global's businessDescription. Default: undefined
+  collections: ['media'],            // ({} | CollectionSlug)[] — collection slugs to enable. Default: ['media']
+  disabled: false,                   // boolean — kill switch, returns the Payload config untouched. Default: false (undefined)
+  globalSettings: false,             // AltTextSettingsConfig | boolean — adds the admin-editable settings global. Default: false
+  location: undefined,               // string — business location, e.g. 'London, UK'; fallback for the global's location. Default: undefined
+  maxLength: 125,                    // number — max characters of generated alt text. Default: 125
+  model: 'gemini-3.1-flash-lite',    // string — Gemini model id. Default: 'gemini-3.1-flash-lite'
+  onError: 'filename',               // 'empty' | 'filename' | 'throw' — fallback strategy when generation fails. Default: 'filename'
+  prompt: undefined,                 // string — replaces the whole prompt, ignoring the settings global entirely. Default: undefined
+  showGenerateButton: true,          // boolean — show the manual Generate button on the field. Default: true
+  sizeName: undefined,               // string — prefer this generated image size when resolving bytes. Default: undefined (smallest available)
+  tone: undefined,                   // string — house style instruction; fallback for the global's tone. Default: undefined
+  timeoutMs: 15000,                  // number — request timeout in ms. Default: 15000
+})
+```
+
+`globalSettings` object form (`AltTextSettingsConfig`):
+
+```ts
+{
+  slug: 'alt-text-settings',              // string — global slug. Default: 'alt-text-settings'
+  adminGroup: 'Settings',                 // string — admin nav group; shares 'Settings' with @kurto/payload-seo-advanced. Default: 'Settings'
+  access: { read: () => true },           // GlobalConfig['access']. Default: { read: () => true }
+  fieldsOverride: ({ defaultFields }) => defaultFields, // (args: { defaultFields: Field[] }) => Field[]. Default: undefined
+}
+```
+
+## What the Plugin Creates
+
+- **`beforeValidate` hook** (`generateAltTextHook`) on every enabled collection — reads `req.file.data` while the upload is still in memory, skips if the target field already has a value, and writes a sanitized Gemini description into `altFieldName`. On failure, falls back per `onError` (default: a humanized filename) rather than blocking a `required` field's validation.
+- **`alt-text-settings` global** (only when `globalSettings` is truthy) — four optional fields, `businessDescription` (textarea, localized), `location` (text, localized), `tone` (textarea), `avoidTerms` (text, `hasMany`), all folded into the prompt and none echoed verbatim into the output.
+- **`POST /api/plugin-alt-text/generate` endpoint** — backs the manual Generate button. Requires an authenticated user. Fetches the stored image back by URL (no `req.file` available here), generates, sanitizes, and returns `{ result }` without writing to the document, so the editor reviews before saving.
+- **Field component** (`AltTextGenerateField`, from `@kurto/payload-alt-text/client`) — wraps whatever field is at `altFieldName`, preserving its type, `required`, `localized`, label, and `admin` config if it already exists; adds a new `text` field with that name if it doesn't.
+
+## Example
+
+```ts
+payloadAltText({
+  collections: ['media'],
+  globalSettings: true,
+  businessContext: 'A boutique architecture photography studio',
+  location: 'London, UK',
+  tone: 'plain and factual, no marketing adjectives',
+  onError: 'filename',
+})
+```
+
+The prompt built by `buildPrompt` never instructs the model to insert keywords or name the business — keyword-stuffed alt text is a search negative and degrades the accessibility the attribute exists for. `businessContext`/`businessDescription` only sharpens vocabulary (e.g. "photographer adjusting a studio softbox" instead of "a man with equipment").
+
+## Exported Types
+
+From `@kurto/payload-alt-text` and `@kurto/payload-alt-text/types`: `PayloadAltTextConfig`, `AltTextSettingsConfig`, `AltTextSettings`, `OnErrorStrategy`, `FieldsOverride`, `ResolvedAltTextOptions`, `ResolvedImage`, `GenerateAltTextArgs`, `AltTextErrorCode`, and the `AltTextError` class (thrown by the Gemini provider with a `code` and optional `status`).
+
+## Docs
+
+- [README](https://github.com/kurto/viewingstudio-darkroom-plugins/blob/main/packages/payload-alt-text/README.md): Full documentation with all config options, field tables, and usage examples
+- [Source](https://github.com/kurto/viewingstudio-darkroom-plugins/tree/main/packages/payload-alt-text/src): TypeScript source code
