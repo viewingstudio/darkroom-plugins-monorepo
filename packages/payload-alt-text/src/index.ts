@@ -17,6 +17,7 @@ import {
 } from './defaults.js'
 import { resolveProviderName } from './providers/index.js'
 import { createGenerateAltHandler } from './endpoints/generateAltHandler.js'
+import { createGenerateFromBytesHandler } from './endpoints/generateFromBytesHandler.js'
 import { altTextField } from './fields/altTextField.js'
 import { createAltTextSettingsGlobal } from './globals/AltTextSettings.js'
 import { generateAltTextHook } from './hooks/generateAltText.js'
@@ -86,12 +87,20 @@ export const payloadAltText =
         if (targetIndex === -1) {
           fields = [
             ...existingFields,
-            altTextField(undefined, { altFieldName, showGenerateButton }),
+            altTextField(undefined, {
+              altFieldName,
+              autoGenerate: options.autoGenerate,
+              showGenerateButton,
+            }),
           ]
         } else {
           fields = existingFields.map((field, index) =>
             index === targetIndex
-              ? altTextField(field, { altFieldName, showGenerateButton })
+              ? altTextField(field, {
+                  altFieldName,
+                  autoGenerate: options.autoGenerate,
+                  showGenerateButton,
+                })
               : field,
           )
         }
@@ -114,6 +123,11 @@ export const payloadAltText =
           handler: createGenerateAltHandler(options),
           method: 'post',
           path: '/plugin-alt-text/generate',
+        },
+        {
+          handler: createGenerateFromBytesHandler(options),
+          method: 'post',
+          path: '/plugin-alt-text/generate-from-bytes',
         },
       ],
       globals: [

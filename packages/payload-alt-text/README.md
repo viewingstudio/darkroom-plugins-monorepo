@@ -83,7 +83,7 @@ The key is read from the env var belonging to the resolved provider, and only th
 | --- | --- | --- | --- |
 | `altFieldName` | `string` | `'alt'` | Field on the collection to populate. |
 | `apiKey` | `string` | — | Provider API key. Falls back to `process.env.GEMINI_API_KEY` or `process.env.ANTHROPIC_API_KEY`, matching the resolved provider. |
-| `autoGenerate` | `boolean` | `true` | Generate automatically when a new file is uploaded. |
+| `autoGenerate` | `boolean` | `true` | Generate automatically in the admin when a file is picked, before the upload is sent. Uploads from outside the admin get the filename placeholder instead. |
 | `avoidTerms` | `string[]` | — | Terms the model must never use. Fallback for the settings global's `avoidTerms`. |
 | `businessContext` | `string` | — | What the business does. Fallback for the settings global's `businessDescription`. |
 | `collections` | `({} \| CollectionSlug)[]` | `['media']` | Collection slugs to enable the plugin on. |
@@ -124,11 +124,25 @@ Values on the global take precedence over the equivalent plugin option (`busines
 
 ## How It Works
 
-There are two paths to a generated description:
+There are two paths to a generated description, and **neither runs inside a Payload write.** That constraint is the single most important thing to know before changing this plugin — see [Why generation never runs in a hook](#why-generation-never-runs-in-a-hook).
 
-1. **On upload.** A `beforeValidate` hook (`generateAltTextHook`) runs before the target field's validation. It is `beforeValidate` rather than `afterChange` for two reasons: the alt field is usually `required: true`, so an upload with an empty alt value fails validation before an `afterChange` hook would ever get a chance to run; and at this point the uploaded bytes are still sitting in memory at `req.file.data`, so generation needs no round-trip back to storage. The hook skips entirely if `autoGenerate` is off, if the target field already has a non-empty value, if there's no in-memory file, or if the file's mime type isn't one the resolved provider accepts.
+1. **Before save, automatically.** When the editor picks a file in the admin, the field component takes the pending `File` from `useUploadControls`, downscales it in the browser to a 768px JPEG, and POSTs the bytes to `POST /api/plugin-alt-text/generate-from-bytes`. The generated text lands in the field before the upload request is ever sent, so the document is created with the alt field already populated. This fires once per selected file, and never when the field already has a value. Requires `autoGenerate` (default `true`).
 
-2. **The manual Generate button.** The admin field component POSTs the collection slug and document id to `POST /api/plugin-alt-text/generate`. Because there's no `req.file` on this path, the handler fetches the already-stored image back by URL (preferring the smallest generated size, or `sizeName` if set) and returns the generated text in the response rather than writing it to the document — the editor sees it in the field and decides whether to save. Clicking the button always regenerates, even if the field is already populated, since clicking it is explicit intent to replace the value.
+   The in-browser downscale is not only an optimization: an original upload can be many megabytes and base64 inflates it by a third, which would exceed the 4.5MB request-body limit on hosts like Vercel. A 768px JPEG is typically 50–150KB, and costs fewer input tokens.
+
+2. **The manual Generate button.** For a document that's already saved, the component POSTs the collection slug and document id to `POST /api/plugin-alt-text/generate`. There's no pending file on this path, so the handler fetches the stored image back by URL (preferring the smallest generated size, or `sizeName` if set). If a file *is* pending, the button uses path 1 instead. Either way the text is returned in the response rather than written to the document — the editor sees it in the field and decides whether to save. Clicking always regenerates, even over an existing value, since clicking is explicit intent to replace it.
+
+For uploads that don't come through the admin — REST, the Local API, MCP — there is no client to run path 1, so `generateAltTextHook` (a `beforeValidate` hook) simply fills the field with a humanized version of the filename. That keeps a `required: true` alt field from blocking the upload; run the Generate button later to replace it. Set `onError: 'empty'` to skip the placeholder and let validation decide instead.
+
+### Why generation never runs in a hook
+
+Earlier versions generated inside the `beforeValidate` upload hook. That is the obvious design, and it is not viable in production.
+
+Payload opens a database transaction for the whole of a mutating HTTP request. A hook that awaits a vision API therefore holds a database connection for the length of that call — up to `timeoutMs` (15s by default) per upload, against roughly 10ms for a normal write. Uploading is exactly the operation editors do in bulk, so a handful of concurrent uploads multiplies that into connection-pool exhaustion. Behind a pooler with a client limit (Supabase's Supavisor defaults to 200), it surfaces as `max client connections reached` and takes down every other request against the same database, not just the uploads.
+
+There is no post-commit collection hook to move the call into, which is why generation lives in endpoints that perform no writes and so hold no transaction while they wait.
+
+**If you change this plugin, do not reintroduce a provider call in a hook**, and do not add a `payload.create`/`update` call to either generation endpoint.
 
 In both paths, the prompt is built by `buildPrompt` from the resolved settings (global values with plugin-option fallbacks), the raw provider response is run through `sanitizeAltText`, and an empty sanitized result is treated as a generation failure. `sanitizeAltText`:
 

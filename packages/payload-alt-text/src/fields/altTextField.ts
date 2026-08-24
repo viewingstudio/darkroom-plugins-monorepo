@@ -4,12 +4,14 @@ const COMPONENT_PATH = '@kurto/payload-alt-text/client#AltTextGenerateField'
 
 export const altTextField = (
   existingField: Field | undefined,
-  args: { altFieldName: string; showGenerateButton: boolean },
+  args: { altFieldName: string; autoGenerate: boolean; showGenerateButton: boolean },
 ): Field => {
-  const { altFieldName, showGenerateButton } = args
+  const { altFieldName, autoGenerate, showGenerateButton } = args
 
   if (existingField) {
-    if (!showGenerateButton) {
+    // The component now carries auto-generation as well as the button, so it has to be
+    // installed whenever either is switched on.
+    if (!showGenerateButton && !autoGenerate) {
       return existingField
     }
 
@@ -23,7 +25,7 @@ export const altTextField = (
         components: {
           ...components,
           Field: {
-            clientProps: { showGenerateButton },
+            clientProps: { autoGenerate, showGenerateButton },
             path: COMPONENT_PATH,
           },
         },
@@ -37,7 +39,7 @@ export const altTextField = (
     admin: {
       components: {
         Field: {
-          clientProps: { showGenerateButton },
+          clientProps: { autoGenerate, showGenerateButton },
           path: COMPONENT_PATH,
         },
       },
