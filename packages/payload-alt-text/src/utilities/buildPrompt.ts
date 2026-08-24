@@ -12,7 +12,7 @@ export const buildPrompt = (settings: AltTextSettings, opts: { maxLength?: numbe
   const clauses: string[] = [
     [
       `Write alt text describing what is visibly in the image, for someone using a screen reader.`,
-      `Use one sentence, under ${maxLength} characters.`,
+      `Use one sentence, under ${maxLength} characters, ending with a full stop.`,
       `Do not begin with "image of", "photo of", or similar preamble.`,
       `Return plain text only — no quotes, no markdown, no labels.`,
       `If the image is purely decorative or has no meaningful content, return an empty string.`,

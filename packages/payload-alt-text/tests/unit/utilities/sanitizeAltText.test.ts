@@ -20,63 +20,63 @@ describe('sanitizeAltText', () => {
   })
 
   test('collapses internal whitespace runs including newlines', () => {
-    expect(sanitizeAltText('A  cat\n\nsitting   on\ta  mat')).toBe('A cat sitting on a mat')
+    expect(sanitizeAltText('A  cat\n\nsitting   on\ta  mat')).toBe('A cat sitting on a mat.')
   })
 
   test('trims leading and trailing whitespace', () => {
-    expect(sanitizeAltText('  a red car  ')).toBe('A red car')
+    expect(sanitizeAltText('  a red car  ')).toBe('A red car.')
   })
 
   test('strips straight double quotes wrapping the whole string', () => {
-    expect(sanitizeAltText('"a red car"')).toBe('A red car')
+    expect(sanitizeAltText('"a red car"')).toBe('A red car.')
   })
 
   test('strips straight single quotes wrapping the whole string', () => {
-    expect(sanitizeAltText("'a red car'")).toBe('A red car')
+    expect(sanitizeAltText("'a red car'")).toBe('A red car.')
   })
 
   test('strips curly double quotes wrapping the whole string', () => {
-    expect(sanitizeAltText('“a red car”')).toBe('A red car')
+    expect(sanitizeAltText('“a red car”')).toBe('A red car.')
   })
 
   test('strips curly single quotes wrapping the whole string', () => {
-    expect(sanitizeAltText('‘a red car’')).toBe('A red car')
+    expect(sanitizeAltText('‘a red car’')).toBe('A red car.')
   })
 
   test('strips repeated/mismatched wrapping quotes', () => {
-    expect(sanitizeAltText(`"'a red car'"`)).toBe('A red car')
+    expect(sanitizeAltText(`"'a red car'"`)).toBe('A red car.')
   })
 
   test('does not strip quotes that only wrap part of the string', () => {
-    expect(sanitizeAltText('a car named "Herbie"')).toBe('A car named "Herbie"')
+    expect(sanitizeAltText('a car named "Herbie"')).toBe('A car named "Herbie".')
   })
 
   test('strips a single preamble pattern', () => {
-    expect(sanitizeAltText('Image of a red car')).toBe('A red car')
+    expect(sanitizeAltText('Image of a red car')).toBe('A red car.')
   })
 
   test('strips repeated preambles until none match', () => {
-    expect(sanitizeAltText('Image of a photo of a red car')).toBe('A red car')
+    expect(sanitizeAltText('Image of a photo of a red car')).toBe('A red car.')
   })
 
   test('strips "this image shows" preamble', () => {
-    expect(sanitizeAltText('This image shows a red car')).toBe('A red car')
+    expect(sanitizeAltText('This image shows a red car')).toBe('A red car.')
   })
 
   test('strips "alt text:" preamble', () => {
-    expect(sanitizeAltText('Alt text: a red car')).toBe('A red car')
+    expect(sanitizeAltText('Alt text: a red car')).toBe('A red car.')
   })
 
   test('strips preamble then quotes wrapping remainder', () => {
-    expect(sanitizeAltText('Image of "a red car"')).toBe('A red car')
+    expect(sanitizeAltText('Image of "a red car"')).toBe('A red car.')
   })
 
-  test('removes trailing period on a single sentence', () => {
-    expect(sanitizeAltText('A red car parked outside.')).toBe('A red car parked outside')
+  test('appends a full stop when the model omits one', () => {
+    expect(sanitizeAltText('A red car parked outside')).toBe('A red car parked outside.')
   })
 
-  test('leaves trailing period-free single sentence untouched', () => {
-    expect(sanitizeAltText('A red car parked outside')).toBe('A red car parked outside')
+  test('keeps a single existing trailing full stop rather than doubling it', () => {
+    expect(sanitizeAltText('A red car parked outside.')).toBe('A red car parked outside.')
   })
 
   test('leaves multi-sentence text alone, including trailing period', () => {
@@ -85,32 +85,54 @@ describe('sanitizeAltText', () => {
     )
   })
 
-  test('leaves text with internal sentence-ending punctuation alone even without trailing period', () => {
+  test('terminates multi-sentence text that is missing its final full stop', () => {
     expect(sanitizeAltText('Is that a red car? It looks fast')).toBe(
-      'Is that a red car? It looks fast',
+      'Is that a red car? It looks fast.',
     )
   })
 
-  test('leaves a single exclamation-ended sentence alone (not a period)', () => {
+  test('leaves an exclamation mark as the terminator rather than adding a full stop', () => {
     expect(sanitizeAltText('What a red car!')).toBe('What a red car!')
+  })
+
+  test('leaves a question mark as the terminator rather than adding a full stop', () => {
+    expect(sanitizeAltText('Is that a red car?')).toBe('Is that a red car?')
+  })
+
+  test('leaves an ellipsis as the terminator rather than adding a full stop', () => {
+    expect(sanitizeAltText('A red car, mid-turn…')).toBe('A red car, mid-turn…')
+  })
+
+  test('always ends with terminal punctuation for any non-empty input', () => {
+    const inputs = [
+      'a red car',
+      '"a red car"',
+      'Image of a red car',
+      '123 red cars',
+      'A red car parked outside the house today',
+    ]
+
+    for (const input of inputs) {
+      expect(sanitizeAltText(input, 20)).toMatch(/[.!?…]$/)
+    }
   })
 
   test('truncates to maxLength on a word boundary when the cut lands mid-word', () => {
     const raw = 'A red car parked outside the house'
-    // Cutting at 12 chars lands inside "parked" ("A red car pa")
-    expect(sanitizeAltText(raw, 12)).toBe('A red car')
+    // Cutting at 11 chars (12 less the reserved full stop) lands inside "parked"
+    expect(sanitizeAltText(raw, 12)).toBe('A red car.')
   })
 
   test('truncates exactly at a word boundary without losing the last word', () => {
     const raw = 'A red car parked'
-    // Exactly the length of the full string minus " outside" - cut right at a space boundary
-    expect(sanitizeAltText(raw, 9)).toBe('A red car')
+    expect(sanitizeAltText(raw, 10)).toBe('A red car.')
   })
 
-  test('truncation never leaves a trailing space or dangling punctuation', () => {
+  test('truncation never leaves a trailing space or dangling punctuation before the full stop', () => {
     const raw = 'A red car, parked outside, near the house'
     const result = sanitizeAltText(raw, 11)
-    expect(result).not.toMatch(/[\s,.;:!?-]$/)
+    expect(result).toMatch(/\.$/)
+    expect(result.slice(0, -1)).not.toMatch(/[\s,.;:!?-]$/)
   })
 
   test('truncation does not append an ellipsis', () => {
@@ -121,7 +143,13 @@ describe('sanitizeAltText', () => {
   })
 
   test('does not truncate text shorter than maxLength', () => {
-    expect(sanitizeAltText('A red car', 125)).toBe('A red car')
+    expect(sanitizeAltText('A red car', 125)).toBe('A red car.')
+  })
+
+  test('the appended full stop counts against maxLength', () => {
+    // 'A red car' is exactly 9 characters, so the stop has to displace a word.
+    expect(sanitizeAltText('A red car', 9)).toBe('A red.')
+    expect(sanitizeAltText('A red car', 9).length).toBeLessThanOrEqual(9)
   })
 
   test('uses DEFAULT_MAX_LENGTH when maxLength is omitted', () => {
@@ -131,14 +159,14 @@ describe('sanitizeAltText', () => {
   })
 
   test('capitalizes a lowercase first character', () => {
-    expect(sanitizeAltText('a red car')).toBe('A red car')
+    expect(sanitizeAltText('a red car')).toBe('A red car.')
   })
 
   test('leaves an already-capitalized first character untouched', () => {
-    expect(sanitizeAltText('A red car')).toBe('A red car')
+    expect(sanitizeAltText('A red car')).toBe('A red car.')
   })
 
   test('leaves a non-letter first character untouched', () => {
-    expect(sanitizeAltText('123 red cars')).toBe('123 red cars')
+    expect(sanitizeAltText('123 red cars')).toBe('123 red cars.')
   })
 })

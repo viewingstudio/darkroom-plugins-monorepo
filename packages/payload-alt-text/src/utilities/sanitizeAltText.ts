@@ -7,7 +7,8 @@ const QUOTE_PAIRS: [string, string][] = [
   ['‘', '’'],
 ]
 
-const SENTENCE_END_RE = /[.!?]/g
+/** Sentence-ending punctuation that already terminates the caption acceptably. */
+const TERMINAL_PUNCTUATION_RE = /[.!?…]$/
 
 function stripWrappingQuotes(input: string): string {
   let text = input
@@ -46,19 +47,12 @@ function stripPreambles(input: string): string {
   return text
 }
 
-function stripTrailingPeriodIfSingleSentence(input: string): string {
-  if (!input.endsWith('.')) {
+function ensureTerminalPunctuation(input: string): string {
+  if (!input || TERMINAL_PUNCTUATION_RE.test(input)) {
     return input
   }
 
-  const withoutTrailing = input.slice(0, -1)
-  const remainingSentenceEnders = withoutTrailing.match(SENTENCE_END_RE)
-
-  if (remainingSentenceEnders && remainingSentenceEnders.length > 0) {
-    return input
-  }
-
-  return withoutTrailing
+  return `${input}.`
 }
 
 function truncateOnWordBoundary(input: string, maxLength: number): string {
@@ -114,9 +108,17 @@ export function sanitizeAltText(raw: string | null | undefined, maxLength?: numb
     return ''
   }
 
-  text = stripTrailingPeriodIfSingleSentence(text)
-  text = truncateOnWordBoundary(text, maxLength ?? DEFAULT_MAX_LENGTH)
+  const limit = maxLength ?? DEFAULT_MAX_LENGTH
+
+  // `maxLength` bounds the final value, full stop included. Anything that isn't already both
+  // short enough and properly terminated gets truncated a character short to leave room for it —
+  // `truncateOnWordBoundary` strips dangling punctuation, so the stop is always re-added below.
+  if (text.length > limit || !TERMINAL_PUNCTUATION_RE.test(text)) {
+    text = truncateOnWordBoundary(text, Math.max(limit - 1, 0))
+  }
+
   text = capitalizeFirst(text)
+  text = ensureTerminalPunctuation(text)
 
   return text
 }

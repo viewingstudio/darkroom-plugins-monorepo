@@ -8,7 +8,8 @@ AI-generated alt text for Payload CMS uploads, powered by Gemini.
 - **Manual Generate button** — an admin-only endpoint lets an editor regenerate the description for an existing upload and review it before saving.
 - **Wraps your existing field** — if the collection already has an `alt`-like field, the plugin adds the Generate button to it and keeps its `required`, `localized`, label, and `admin` config untouched; only a new field is created from scratch.
 - **Never overwrites on upload** — the hook only runs when the target field is empty, so hand-written alt text is always left alone.
-- **Business-aware prompting** — an optional settings global lets an admin describe the business, its location, a house tone, and terms to avoid, all folded into the prompt without ever appearing in the output.
+- **Business-aware prompting, editable in the admin panel** — set `globalSettings: true` and an **Alt Text** global appears under Settings, where an admin can edit the business description, location, house tone, and terms to avoid without a redeploy. All four are folded into the prompt and never appear in the output.
+- **Consistent sentence formatting** — generated alt text is always capitalized and always terminated with a full stop (an existing `!`, `?`, or `…` is kept as-is), including after truncation.
 - **No keyword stuffing** — the prompt has no instruction to insert keywords or the brand name, because that degrades both search relevance and the accessibility the attribute exists for.
 - **Graceful failure** — a failed or safety-blocked API call falls back to a humanized filename (or an empty value, or a thrown error) rather than silently blocking an upload.
 - **No stored secret** — the Gemini API key lives only in `process.env.GEMINI_API_KEY`, never in the database.
@@ -36,7 +37,10 @@ export default buildConfig({
       altFieldName: 'alt',
       autoGenerate: true,
       showGenerateButton: true,
+      // Adds the admin-editable "Alt Text" global under Settings, where an editor can change
+      // businessDescription / location / tone / avoidTerms without touching this file.
       globalSettings: true,
+      // Code-level fallbacks, used only when the matching field on the global is blank.
       businessContext: 'A boutique architecture photography studio',
       location: 'London, UK',
       tone: 'plain and factual, no marketing adjectives',
@@ -45,6 +49,8 @@ export default buildConfig({
   ],
 })
 ```
+
+`globalSettings` defaults to `false`, so the admin-editable global is opt-in. Enable it if you want editors to be able to tune the prompt context themselves; leave it off and the plugin options above are the only source of prompt context.
 
 ```bash
 # .env
@@ -82,16 +88,18 @@ GEMINI_API_KEY=your-gemini-api-key
 | `access` | `GlobalConfig['access']` | `{ read: () => true }` | Access control for the global. |
 | `fieldsOverride` | `(args: { defaultFields: Field[] }) => Field[]` | — | Override the global's default fields array. |
 
-### Settings Global
+### Settings Global — editing prompt context from the admin UI
 
-When `globalSettings` is enabled, an **Alt Text** global is added to the admin panel with four fields, all optional and all folded into the prompt sent to Gemini:
+`businessContext`, `location`, `tone` and `avoidTerms` are all editable from the admin panel; the plugin options of the same names are only code-level fallbacks. Pass `globalSettings: true` and an **Alt Text** global appears in the admin sidebar under **Settings** with four fields, all optional and all folded into the prompt sent to Gemini:
 
 - **`businessDescription`** (textarea, localized) — context so the model names things with the right vocabulary and specificity (e.g. "Photographer adjusting a studio softbox" rather than "a man with equipment"). Never inserted into the output verbatim, and the business is never named in the generated text.
 - **`location`** (text, localized) — mentioned in the generated alt text only where the image visually supports it; the model is told never to assert a location the image doesn't show.
 - **`tone`** (textarea) — house style for generated captions, e.g. "plain and factual, no marketing adjectives".
 - **`avoidTerms`** (text, `hasMany`) — words the model must never use, such as competitor names or deprecated brand terms.
 
-Values on the global take precedence over the equivalent plugin option (`businessContext`, `location`, `tone`, `avoidTerms`) when both are set; the plugin options act as a fallback when the global is absent, unreadable, or a field is left blank.
+Values on the global take precedence over the equivalent plugin option (`businessContext`, `location`, `tone`, `avoidTerms`) when both are set; the plugin options act as a fallback when the global is absent, unreadable, or a field is left blank. The global is read once per generation with no caching, so an edit in the admin panel takes effect on the very next upload — no redeploy or restart.
+
+`businessDescription` and `location` are `localized`, so with Payload localization enabled each locale can carry its own context. Use `fieldsOverride` to add, remove, or reorder fields on the global — for example to make the whole group read-only for non-admin roles, or to add your own field and read it back through a custom `prompt`.
 
 ## How It Works
 
@@ -101,7 +109,15 @@ There are two paths to a generated description:
 
 2. **The manual Generate button.** The admin field component POSTs the collection slug and document id to `POST /api/plugin-alt-text/generate`. Because there's no `req.file` on this path, the handler fetches the already-stored image back by URL (preferring the smallest generated size, or `sizeName` if set) and returns the generated text in the response rather than writing it to the document — the editor sees it in the field and decides whether to save. Clicking the button always regenerates, even if the field is already populated, since clicking it is explicit intent to replace the value.
 
-In both paths, the prompt is built by `buildPrompt` from the resolved settings (global values with plugin-option fallbacks), the raw Gemini response is run through `sanitizeAltText` (strips wrapping quotes, strips preamble like "image of...", trims to `maxLength` on a word boundary, capitalizes the first letter), and an empty sanitized result is treated as a generation failure.
+In both paths, the prompt is built by `buildPrompt` from the resolved settings (global values with plugin-option fallbacks), the raw Gemini response is run through `sanitizeAltText`, and an empty sanitized result is treated as a generation failure. `sanitizeAltText`:
+
+1. collapses whitespace runs and trims;
+2. strips wrapping quotes (straight and curly) and preamble like "image of…", "this photo shows…", "alt text:";
+3. truncates to `maxLength` on a word boundary, with no ellipsis and no dangling punctuation;
+4. capitalizes the first letter;
+5. **terminates the sentence with a full stop.** An existing `.`, `!`, `?` or `…` is left as the terminator; anything else gets a `.` appended. `maxLength` bounds the final value *including* that full stop, so when a stop has to be added the truncation budget is one character shorter.
+
+Alt text is read aloud as a sentence, and screen readers use terminal punctuation as a prosodic cue — without it, the description runs into whatever follows the image. Gemini is also asked for a full stop in the prompt itself; the sanitizer is the guarantee rather than the primary mechanism.
 
 **Existing fields are preserved, not replaced.** If the collection already has a field named `altFieldName`, the plugin only adds the Generate button's client component to its `admin.components.Field` — its type, `required`, `localized`, label, and any other `admin` config are left exactly as configured. If no such field exists, the plugin adds a new `text` field named `altFieldName` with the label "Alt Text". Point `altFieldName` at a different field name to retarget which field the plugin manages.
 
