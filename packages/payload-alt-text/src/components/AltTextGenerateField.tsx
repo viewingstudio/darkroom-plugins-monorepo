@@ -43,6 +43,18 @@ export const AltTextGenerateField: React.FC<AltTextGenerateFieldProps> = (props)
     },
   } = useConfig()
 
+  /**
+   * While a generation request is in flight, block save. Without this, saving immediately after
+   * picking a file (the normal, fast thing to do) beats the vision API call: the document saves
+   * with `beforeValidate`'s humanized-filename placeholder, which then counts as "already has a
+   * value" and prevents the auto-generate effect below from ever running again on remount — the
+   * editor is left needing to reopen the doc and click Generate by hand.
+   */
+  const validateWhileGenerating = useCallback(
+    (): string | true => (loading ? 'Generating alt text — please wait a moment before saving.' : true),
+    [loading],
+  )
+
   const {
     customComponents: { AfterInput, BeforeInput, Label } = {},
     errorMessage,
@@ -50,7 +62,7 @@ export const AltTextGenerateField: React.FC<AltTextGenerateFieldProps> = (props)
     setValue,
     showError,
     value,
-  }: FieldType<string> = useField()
+  }: FieldType<string> = useField({ validate: validateWhileGenerating })
 
   const { collectionSlug, id } = useDocumentInfo()
 

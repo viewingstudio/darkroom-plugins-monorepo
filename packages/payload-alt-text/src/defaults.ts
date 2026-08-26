@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS_SLUG = 'alt-text-settings'
 
 export const DEFAULT_ADMIN_GROUP = 'Settings'
 
-/** Roughly the point where screen readers and search engines both stop caring. */
+/** Roughly the point where screen readers and search engines both stop caring. A target for the prompt, not a hard cap. */
 export const DEFAULT_MAX_LENGTH = 125
 
 export const DEFAULT_TIMEOUT_MS = 15000

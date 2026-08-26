@@ -10,6 +10,24 @@ const QUOTE_PAIRS: [string, string][] = [
 /** Sentence-ending punctuation that already terminates the caption acceptably. */
 const TERMINAL_PUNCTUATION_RE = /[.!?…]$/
 
+/**
+ * `maxLength` is a soft target aimed at by the prompt, not a hard cap enforced here — chopping a
+ * well-formed sentence mid-thought to hit an exact character count produces worse alt text than
+ * a slightly longer one. Truncation below only exists as a safety net for output that blows way
+ * past the target (a misbehaving model, a prompt override with no length instruction), so it only
+ * engages once text is this many times over `maxLength`.
+ */
+const TRUNCATION_CEILING_MULTIPLIER = 2
+
+/**
+ * Conjunctions, prepositions, and articles that can't legally end a sentence. Truncation on a
+ * word boundary (or the model simply running out of tokens) can leave one of these dangling —
+ * `ensureTerminalPunctuation` would otherwise turn "...shelf and" into the nonsensical "...shelf
+ * and."
+ */
+const DANGLING_TRAILING_WORD_RE =
+  /\s(?:a|an|the|and|or|but|nor|so|yet|as|of|in|on|at|to|for|from|by|with|without|near|over|under|into|onto|through|during|before|after|about)$/i
+
 function stripWrappingQuotes(input: string): string {
   let text = input
   let stripped = true
@@ -45,6 +63,26 @@ function stripPreambles(input: string): string {
   }
 
   return text
+}
+
+function stripDanglingTrailingWords(input: string): string {
+  let text = input
+
+  while (true) {
+    const match = text.match(DANGLING_TRAILING_WORD_RE)
+    if (!match || match.index === undefined) {
+      return text
+    }
+
+    const candidate = text.slice(0, match.index).trimEnd()
+    // Never strip past a single remaining word — an all-connector caption should stay as-is
+    // rather than being whittled down to nothing.
+    if (!candidate.includes(' ') && candidate.length === 0) {
+      return text
+    }
+
+    text = candidate
+  }
 }
 
 function ensureTerminalPunctuation(input: string): string {
@@ -108,13 +146,17 @@ export function sanitizeAltText(raw: string | null | undefined, maxLength?: numb
     return ''
   }
 
-  const limit = maxLength ?? DEFAULT_MAX_LENGTH
+  const target = maxLength ?? DEFAULT_MAX_LENGTH
+  const ceiling = target * TRUNCATION_CEILING_MULTIPLIER
 
-  // `maxLength` bounds the final value, full stop included. Anything that isn't already both
-  // short enough and properly terminated gets truncated a character short to leave room for it —
-  // `truncateOnWordBoundary` strips dangling punctuation, so the stop is always re-added below.
-  if (text.length > limit || !TERMINAL_PUNCTUATION_RE.test(text)) {
-    text = truncateOnWordBoundary(text, Math.max(limit - 1, 0))
+  if (text.length > ceiling) {
+    text = truncateOnWordBoundary(text, Math.max(ceiling - 1, 0))
+  }
+
+  // Only relevant when we're about to append a full stop below — text that already ends with
+  // its own terminal punctuation (an exclamation mark, say) is left exactly as the model wrote it.
+  if (!TERMINAL_PUNCTUATION_RE.test(text)) {
+    text = stripDanglingTrailingWords(text)
   }
 
   text = capitalizeFirst(text)

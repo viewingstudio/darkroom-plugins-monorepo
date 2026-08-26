@@ -117,45 +117,51 @@ describe('sanitizeAltText', () => {
     }
   })
 
-  test('truncates to maxLength on a word boundary when the cut lands mid-word', () => {
-    const raw = 'A red car parked outside the house'
-    // Cutting at 11 chars (12 less the reserved full stop) lands inside "parked"
-    expect(sanitizeAltText(raw, 12)).toBe('A red car.')
-  })
-
-  test('truncates exactly at a word boundary without losing the last word', () => {
+  // maxLength is a soft target for the prompt, not a hard cap: text that's only somewhat over
+  // it — the normal case, since models don't count characters exactly — is left alone rather
+  // than chopped mid-sentence.
+  test('does not truncate text that is only moderately over maxLength', () => {
     const raw = 'A red car parked'
-    expect(sanitizeAltText(raw, 10)).toBe('A red car.')
-  })
-
-  test('truncation never leaves a trailing space or dangling punctuation before the full stop', () => {
-    const raw = 'A red car, parked outside, near the house'
-    const result = sanitizeAltText(raw, 11)
-    expect(result).toMatch(/\.$/)
-    expect(result.slice(0, -1)).not.toMatch(/[\s,.;:!?-]$/)
-  })
-
-  test('truncation does not append an ellipsis', () => {
-    const raw = 'A red car parked outside the house today'
-    const result = sanitizeAltText(raw, 15)
-    expect(result).not.toContain('...')
-    expect(result).not.toContain('…')
+    expect(sanitizeAltText(raw, 12)).toBe('A red car parked.')
   })
 
   test('does not truncate text shorter than maxLength', () => {
     expect(sanitizeAltText('A red car', 125)).toBe('A red car.')
   })
 
-  test('the appended full stop counts against maxLength', () => {
-    // 'A red car' is exactly 9 characters, so the stop has to displace a word.
-    expect(sanitizeAltText('A red car', 9)).toBe('A red.')
-    expect(sanitizeAltText('A red car', 9).length).toBeLessThanOrEqual(9)
+  test('the appended full stop is allowed to push text past maxLength', () => {
+    expect(sanitizeAltText('A red car', 9)).toBe('A red car.')
+  })
+
+  // Truncation only kicks in as a safety net once text is well beyond maxLength — a genuinely
+  // runaway response, not routine model verbosity.
+  test('truncates on a word boundary once text is far beyond maxLength', () => {
+    const raw = 'A red car parked outside a large house near the old oak tree by the river'
+    const result = sanitizeAltText(raw, 12)
+    expect(result.length).toBeLessThan(raw.length)
+    expect(result).toMatch(/\.$/)
+  })
+
+  test('truncation never leaves a trailing space or dangling punctuation before the full stop', () => {
+    const raw =
+      'A red car, parked outside, near the house, beside the garden, under the old oak tree, by the river'
+    const result = sanitizeAltText(raw, 11)
+    expect(result).toMatch(/\.$/)
+    expect(result.slice(0, -1)).not.toMatch(/[\s,.;:!?-]$/)
+  })
+
+  test('truncation does not append an ellipsis', () => {
+    const raw =
+      'A red car parked outside the house today, waiting for someone to come and drive it away'
+    const result = sanitizeAltText(raw, 15)
+    expect(result).not.toContain('...')
+    expect(result).not.toContain('…')
   })
 
   test('uses DEFAULT_MAX_LENGTH when maxLength is omitted', () => {
     const raw = 'a '.repeat(100).trim()
     const result = sanitizeAltText(raw)
-    expect(result.length).toBeLessThanOrEqual(125)
+    expect(result.length).toBeLessThanOrEqual(250)
   })
 
   test('capitalizes a lowercase first character', () => {
@@ -168,5 +174,23 @@ describe('sanitizeAltText', () => {
 
   test('leaves a non-letter first character untouched', () => {
     expect(sanitizeAltText('123 red cars')).toBe('123 red cars.')
+  })
+
+  test('drops a dangling conjunction left behind by truncation instead of appending a stop after it', () => {
+    const raw = 'A row of vintage cameras displayed on a wooden shelf and lit by warm light'
+    const result = sanitizeAltText(raw, 45)
+    expect(result).not.toMatch(/\b(a|an|the|and|or|but|of|in|on|at|to|for|from|by|with)\.$/i)
+  })
+
+  test('does not touch text that already ends with its own terminal punctuation', () => {
+    expect(sanitizeAltText('A cat sitting on a mat and staring at a bird!')).toBe(
+      'A cat sitting on a mat and staring at a bird!',
+    )
+  })
+
+  test('drops an untruncated but dangling conjunction the model forgot to finish', () => {
+    expect(sanitizeAltText('A red car parked outside the house and')).toBe(
+      'A red car parked outside the house.',
+    )
   })
 })

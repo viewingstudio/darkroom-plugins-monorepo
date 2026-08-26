@@ -90,7 +90,7 @@ The key is read from the env var belonging to the resolved provider, and only th
 | `disabled` | `boolean` | — | Kill switch — returns the Payload config untouched. |
 | `globalSettings` | `AltTextSettingsConfig \| boolean` | `false` | Adds the admin-editable settings global. |
 | `location` | `string` | — | Business location, e.g. `'London, UK'`. Fallback for the settings global's `location`. |
-| `maxLength` | `number` | `125` | Max characters of generated alt text. |
+| `maxLength` | `number` | `125` | Target character length for generated alt text — a guideline given to the model, not a hard cap. |
 | `model` | `string` | provider default | Model id. Defaults to `'gemini-3.1-flash-lite'` or `'claude-haiku-4-5-20251001'` depending on `provider`. |
 | `onError` | `'empty' \| 'filename' \| 'throw'` | `'filename'` | What to do when generation fails. |
 | `prompt` | `string` | — | Replace the whole prompt, ignoring the settings global entirely. |
@@ -148,9 +148,9 @@ In both paths, the prompt is built by `buildPrompt` from the resolved settings (
 
 1. collapses whitespace runs and trims;
 2. strips wrapping quotes (straight and curly) and preamble like "image of…", "this photo shows…", "alt text:";
-3. truncates to `maxLength` on a word boundary, with no ellipsis and no dangling punctuation;
+3. truncates on a word boundary, with no ellipsis and no dangling punctuation or dangling conjunction/preposition/article — but only once text is more than double `maxLength`. `maxLength` is a soft target the prompt aims for, not a hard cap: models don't count characters exactly, and chopping an otherwise-good sentence mid-thought to hit an exact limit reads worse than a slightly longer one. Truncation exists purely as a safety net for genuinely runaway output;
 4. capitalizes the first letter;
-5. **terminates the sentence with a full stop.** An existing `.`, `!`, `?` or `…` is left as the terminator; anything else gets a `.` appended. `maxLength` bounds the final value *including* that full stop, so when a stop has to be added the truncation budget is one character shorter.
+5. **terminates the sentence with a full stop.** An existing `.`, `!`, `?` or `…` is left as the terminator; anything else gets a `.` appended, even if that pushes the result past `maxLength`.
 
 Alt text is read aloud as a sentence, and screen readers use terminal punctuation as a prosodic cue — without it, the description runs into whatever follows the image. The model is also asked for a full stop in the prompt itself; the sanitizer is the guarantee rather than the primary mechanism.
 

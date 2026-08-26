@@ -45,7 +45,7 @@ export type PayloadAltTextConfig = {
   globalSettings?: AltTextSettingsConfig | boolean
   /** Business location, e.g. 'London, UK'. Fallback for the global's `location`. */
   location?: string
-  /** Max characters of generated alt text. Default: 125 */
+  /** Target character length of generated alt text — a guideline given to the model, not a hard cap. Default: 125 */
   maxLength?: number
   /**
    * Model id for the resolved provider. Defaults to that provider's cheap vision tier:
